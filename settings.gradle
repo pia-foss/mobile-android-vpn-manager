@@ -1,0 +1,23 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+include ':testapp'
+include ':vpnmanager'
+include ':vpnmanager:vpnmanagerapi'
+include ':vpnmanager:targetprovider'
+include ':vpnmanager:vpnservicemanager'
+include ':vpnmanager:vpnservicemanager:vpnprotocol'
+include ':vpnmanager:vpnservicemanager:vpnprotocol:openvpn'
+include ':vpnmanager:vpnservicemanager:vpnprotocol:wireguard'

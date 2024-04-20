@@ -1,0 +1,48 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    compileSdk rootProject.compileSdkVersion
+
+    defaultConfig {
+        minSdk rootProject.minSdkVersion
+        targetSdk rootProject.targetSdkVersion
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    externalNativeBuild {
+        cmake {
+            path 'tools/CMakeLists.txt'
+        }
+    }
+    buildTypes {
+        release {
+            externalNativeBuild {
+                cmake {
+                    arguments "-DANDROID_PACKAGE_NAME=com.kape.wireguard", "-DGRADLE_USER_HOME=${project.gradle.gradleUserHomeDir}"
+                }
+            }
+        }
+        debug {
+            externalNativeBuild {
+                cmake {
+                    arguments "-DANDROID_PACKAGE_NAME=com.kape.wireguard.debug", "-DGRADLE_USER_HOME=${project.gradle.gradleUserHomeDir}"
+                }
+            }
+        }
+    }
+    namespace 'com.kape.wireguard'
+}
+
+dependencies {
+    implementation "androidx.annotation:annotation:${rootProject.annotationVersion}"
+}

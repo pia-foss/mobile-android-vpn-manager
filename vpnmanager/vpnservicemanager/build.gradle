@@ -1,0 +1,41 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    compileSdk rootProject.compileSdkVersion
+
+    defaultConfig {
+        minSdk rootProject.minSdkVersion
+        targetSdk rootProject.targetSdkVersion
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    namespace 'com.kape.vpnservicemanager'
+}
+
+dependencies {
+    implementation "androidx.annotation:annotation:${rootProject.annotationVersion}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${rootProject.coroutinesVersion}"
+
+    implementation project(":vpnmanager:vpnmanagerapi")
+    api project(":vpnmanager:vpnservicemanager:vpnprotocol")
+
+    testImplementation "junit:junit:${rootProject.junitVersion}"
+    testImplementation "androidx.test:core:${rootProject.testCoreVersion}"
+    testImplementation "org.robolectric:robolectric:${rootProject.robolectricVersion}"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:${rootProject.coroutinesTestVersion}"
+}

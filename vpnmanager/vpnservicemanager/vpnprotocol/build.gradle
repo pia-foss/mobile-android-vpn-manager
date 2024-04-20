@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.serialization'
+}
+
+android {
+    compileSdk rootProject.compileSdkVersion
+
+    defaultConfig {
+        minSdk rootProject.minSdkVersion
+        targetSdk rootProject.targetSdkVersion
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    namespace 'com.kape.vpnprotocol'
+}
+
+dependencies {
+    implementation "androidx.annotation:annotation:${rootProject.annotationVersion}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${rootProject.coroutinesVersion}"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${rootProject.serializationVersion}"
+    implementation "com.madgag.spongycastle:core:${rootProject.spongycastleCoreVersion}"
+    implementation "io.ktor:ktor-client-okhttp:${rootProject.ktorClientVersion}"
+
+    implementation project(":vpnmanager:vpnmanagerapi")
+    implementation project(":vpnmanager:vpnservicemanager:vpnprotocol:wireguard")
+    implementation project(":vpnmanager:vpnservicemanager:vpnprotocol:openvpn")
+
+    testImplementation "junit:junit:${rootProject.junitVersion}"
+    testImplementation "androidx.test:core:${rootProject.testCoreVersion}"
+    testImplementation "org.robolectric:robolectric:${rootProject.robolectricVersion}"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:${rootProject.coroutinesTestVersion}"
+    testImplementation "io.mockk:mockk:${rootProject.mockkVersion}"
+}

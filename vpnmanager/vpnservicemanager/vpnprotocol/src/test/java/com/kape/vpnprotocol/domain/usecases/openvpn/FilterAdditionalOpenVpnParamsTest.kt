@@ -99,4 +99,19 @@ class FilterAdditionalOpenVpnParamsTest {
         // then
         assert(expectedOutput.contentEquals(filteredConfig.getOrNull()?.openVpnClientConfiguration?.additionalParameters))
     }
+
+    @Test
+    fun `killswitch specific parameters are whitelisted and added as additional parameters`() = runTest {
+        // given
+        val inputParams = "--persist-key --client-connect --persist-tun"
+        val expectedOutput = "--persist-key --persist-tun"
+        val openVpnConfig = GivenModel.openVpnConfig(additionalParameters = inputParams)
+        val config = GivenModel.protocolConfiguration(openVpnClientConfiguration = openVpnConfig)
+
+        // when
+        val filteredConfig = usecase(config)
+
+        // then
+        assert(expectedOutput.contentEquals(filteredConfig.getOrNull()?.openVpnClientConfiguration?.additionalParameters))
+    }
 }

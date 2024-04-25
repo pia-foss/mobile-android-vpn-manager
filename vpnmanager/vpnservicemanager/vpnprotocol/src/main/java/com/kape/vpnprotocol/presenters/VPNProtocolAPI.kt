@@ -115,10 +115,11 @@ public interface ServiceConfigurationFileDescriptorProvider {
      * @param peerIp: String.
      * @param dnsIp: String?.
      * @param mtu: Int?.
+     * @param gateway: String,
      *
      * @return `Result<Int>`. Native fd for the Parcel's File Descriptor VPN interface.
      */
-    fun establish(peerIp: String, dnsIp: String? = null, mtu: Int? = null): Result<Int>
+    fun establish(peerIp: String, dnsIp: String? = null, mtu: Int? = null, gateway: String): Result<Int>
 }
 
 /**

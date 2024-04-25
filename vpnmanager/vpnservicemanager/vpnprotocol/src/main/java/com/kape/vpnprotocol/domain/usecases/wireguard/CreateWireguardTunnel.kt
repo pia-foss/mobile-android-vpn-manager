@@ -45,7 +45,8 @@ internal class CreateWireguardTunnel(
                 return Result.failure(it)
             }
         val serviceFd = serviceConfigurationFileDescriptorProvider.establish(
-            peerIp = addKeyResponse.peerIp
+            peerIp = addKeyResponse.peerIp,
+            gateway = addKeyResponse.serverVip
         ).getOrElse {
             return Result.failure(
                 VPNProtocolError(code = VPNProtocolErrorCode.PROTOCOL_CONFIGURATION_NOT_READY)

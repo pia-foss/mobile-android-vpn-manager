@@ -49,6 +49,7 @@ internal class Cache : ICache {
     private var serviceBound = false
     private var protocolConfiguration: VPNServiceManagerConfiguration? = null
     private var serverPeerInformation: VPNServiceServerPeerInformation? = null
+    private var gateway: String? = null
 
     // region ICache
     override fun clear(): Result<Unit> {
@@ -56,6 +57,7 @@ internal class Cache : ICache {
             .mapCatching { clearService().getOrThrow() }
             .mapCatching { clearServiceBound().getOrThrow() }
             .mapCatching { clearServerPeerInformation().getOrThrow() }
+            .mapCatching { clearGateway() }
     }
     // endregion
 
@@ -133,6 +135,26 @@ internal class Cache : ICache {
 
     override fun clearServerPeerInformation(): Result<Unit> {
         serverPeerInformation = null
+        return Result.success(Unit)
+    }
+
+    override fun setGateway(gateway: String): Result<Unit> {
+        this.gateway = gateway
+        return Result.success(Unit)
+    }
+
+    override fun getGateway(): Result<String> {
+        return gateway?.let {
+            Result.success(it)
+        } ?: Result.failure(
+            VPNServiceManagerError(
+                code = VPNServiceManagerErrorCode.PROTOCOL_PEER_INFORMATION_NOT_READY
+            )
+        )
+    }
+
+    override fun clearGateway(): Result<Unit> {
+        this.gateway = null
         return Result.success(Unit)
     }
     // endregion

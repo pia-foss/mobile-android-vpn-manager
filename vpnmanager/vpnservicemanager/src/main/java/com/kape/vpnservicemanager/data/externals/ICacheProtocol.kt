@@ -56,4 +56,21 @@ internal interface ICacheProtocol {
      * @return `Result<Unit>`.
      */
     fun clearServerPeerInformation(): Result<Unit>
+
+    /**
+     * @param gateway `String`.
+     *
+     * @return `Result<Unit>`.
+     */
+    fun setGateway(gateway: String): Result<Unit>
+
+    /**
+     * @return `Result<String>`.
+     */
+    fun getGateway(): Result<String>
+
+    /**
+     * @return `Result<Unit>`.
+     */
+    fun clearGateway(): Result<Unit>
 }

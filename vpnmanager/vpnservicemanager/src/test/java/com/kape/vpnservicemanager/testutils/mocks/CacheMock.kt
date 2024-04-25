@@ -43,6 +43,9 @@ internal class CacheMock(
         SET_SERVER_PEER_INFORMATION,
         GET_SERVER_PEER_INFORMATION,
         CLEAR_SERVER_PEER_INFORMATION,
+        SET_GATEWAY,
+        GET_GATEWAY,
+        CLEAR_GATEWAY,
     }
 
     override fun clear(): Result<Unit> =
@@ -109,6 +112,21 @@ internal class CacheMock(
 
     override fun clearServerPeerInformation(): Result<Unit> =
         mockedResponses[MethodSignature.CLEAR_SERVER_PEER_INFORMATION]?.let {
+            Result.success(it as Unit)
+        } ?: Result.failure(VPNServiceManagerError(VPNServiceManagerErrorCode.PROTOCOL_PEER_INFORMATION_NOT_READY))
+
+    override fun setGateway(gateway: String): Result<Unit> =
+        mockedResponses[MethodSignature.SET_GATEWAY]?.let {
+            Result.success(it as Unit)
+        } ?: Result.failure(VPNServiceManagerError(VPNServiceManagerErrorCode.PROTOCOL_PEER_INFORMATION_NOT_READY))
+
+    override fun getGateway(): Result<String> =
+        mockedResponses[MethodSignature.GET_GATEWAY]?.let {
+            Result.success(it as String)
+        } ?: Result.failure(VPNServiceManagerError(VPNServiceManagerErrorCode.PROTOCOL_PEER_INFORMATION_NOT_READY))
+
+    override fun clearGateway(): Result<Unit> =
+        mockedResponses[MethodSignature.CLEAR_GATEWAY]?.let {
             Result.success(it as Unit)
         } ?: Result.failure(VPNServiceManagerError(VPNServiceManagerErrorCode.PROTOCOL_PEER_INFORMATION_NOT_READY))
 }

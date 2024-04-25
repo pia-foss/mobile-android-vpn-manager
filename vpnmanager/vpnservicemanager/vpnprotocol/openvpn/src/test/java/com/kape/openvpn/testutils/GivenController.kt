@@ -5,6 +5,7 @@ import com.kape.openvpn.domain.controllers.IStartProcessController
 import com.kape.openvpn.domain.controllers.IStopProcessController
 import com.kape.openvpn.domain.controllers.StartProcessController
 import com.kape.openvpn.domain.controllers.StopProcessController
+import com.kape.openvpn.domain.usecases.ICancelHoldReleaseJob
 import com.kape.openvpn.domain.usecases.IClearCache
 import com.kape.openvpn.domain.usecases.ICloseSocket
 import com.kape.openvpn.domain.usecases.IIsProcessRunning
@@ -51,12 +52,14 @@ internal object GivenController {
 
     fun stopProcessController(
         context: Context,
+        cancelHoldReleaseJob: ICancelHoldReleaseJob = GivenUsecase.cancelHoldReleaseJob(),
         isProcessRunning: IIsProcessRunning = GivenUsecase.isProcessRunning(),
         closeSocket: ICloseSocket = GivenUsecase.closeSocket(),
         stopProcess: IStopProcess = GivenUsecase.stopProcess(context = context),
         clearCache: IClearCache = GivenUsecase.clearCache(),
     ): IStopProcessController =
         StopProcessController(
+            cancelHoldReleaseJob = cancelHoldReleaseJob,
             isProcessRunning = isProcessRunning,
             closeSocket = closeSocket,
             stopProcess = stopProcess,

@@ -1,7 +1,7 @@
 package com.kape.vpnmanager.usecases
 
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnmanager.data.externals.IConnectionEventAnnouncer
-import com.kape.vpnmanager.data.externals.ICoroutineContext
 import com.kape.vpnmanager.data.externals.ITargetProvider
 import com.kape.vpnmanager.data.models.ServerList
 import com.kape.vpnmanager.data.models.ServerPeerInformation

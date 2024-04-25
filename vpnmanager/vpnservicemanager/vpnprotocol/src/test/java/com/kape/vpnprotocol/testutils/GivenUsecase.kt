@@ -1,12 +1,12 @@
 package com.kape.vpnprotocol.testutils
 
 import android.content.Context
+import com.kape.vpnmanager.api.data.externals.IJob
 import com.kape.vpnprotocol.data.externals.common.ICache
 import com.kape.vpnprotocol.data.externals.common.ICacheProtocol
 import com.kape.vpnprotocol.data.externals.common.ICacheService
 import com.kape.vpnprotocol.data.externals.common.IConnectivity
 import com.kape.vpnprotocol.data.externals.common.IFile
-import com.kape.vpnprotocol.data.externals.common.IJob
 import com.kape.vpnprotocol.data.externals.common.ILogsProcessor
 import com.kape.vpnprotocol.data.externals.common.INetworkClient
 import com.kape.vpnprotocol.data.externals.common.IProcess

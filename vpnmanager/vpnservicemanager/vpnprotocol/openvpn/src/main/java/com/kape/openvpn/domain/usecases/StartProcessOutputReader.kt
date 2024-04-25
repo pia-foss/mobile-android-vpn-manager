@@ -1,7 +1,7 @@
 package com.kape.openvpn.domain.usecases
 
 import com.kape.openvpn.data.externals.ICache
-import com.kape.openvpn.data.externals.ICoroutineContext
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

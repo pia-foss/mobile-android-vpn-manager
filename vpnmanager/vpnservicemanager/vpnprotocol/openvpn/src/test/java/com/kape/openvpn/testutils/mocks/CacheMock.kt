@@ -2,6 +2,7 @@ package com.kape.openvpn.testutils.mocks
 
 import com.kape.openvpn.data.externals.ICache
 import com.kape.openvpn.domain.usecases.IOpenVpnProcessOutputHandler
+import com.kape.vpnmanager.api.data.externals.IJob
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -34,6 +35,9 @@ internal class CacheMock : ICache {
         SET_PROCESS_OUTPUT_HANDLER,
         GET_PROCESS_OUTPUT_HANDLER,
         CLEAR_PROCESS_OUTPUT_HANDLER,
+        SET_HOLD_RELEASE_JOB,
+        GET_HOLD_RELEASE_JOB,
+        CLEAR_HOLD_RELEASE_JOB,
     }
 
     // region ICache
@@ -74,6 +78,21 @@ internal class CacheMock : ICache {
 
     override fun clearProcessOutputHandler(): Result<Unit> {
         increment(invocationsPerformed, MethodSignature.CLEAR_PROCESS_OUTPUT_HANDLER)
+        return Result.success(Unit)
+    }
+
+    override fun setHoldReleaseJob(job: IJob): Result<Unit> {
+        increment(invocationsPerformed, MethodSignature.SET_HOLD_RELEASE_JOB)
+        return Result.success(Unit)
+    }
+
+    override fun getHoldReleaseJob(): Result<IJob> {
+        increment(invocationsPerformed, MethodSignature.GET_HOLD_RELEASE_JOB)
+        return Result.success(JobMock())
+    }
+
+    override fun clearHoldReleaseJob(): Result<Unit> {
+        increment(invocationsPerformed, MethodSignature.CLEAR_HOLD_RELEASE_JOB)
         return Result.success(Unit)
     }
     // endregion

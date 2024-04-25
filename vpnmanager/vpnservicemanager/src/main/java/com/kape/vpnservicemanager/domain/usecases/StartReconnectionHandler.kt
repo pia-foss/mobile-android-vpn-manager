@@ -1,8 +1,8 @@
 package com.kape.vpnservicemanager.domain.usecases
 
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnservicemanager.data.externals.ICacheService
 import com.kape.vpnservicemanager.data.externals.IConnectivity
-import com.kape.vpnservicemanager.data.externals.ICoroutineContext
 import com.kape.vpnservicemanager.data.externals.IProtocol
 import com.kape.vpnservicemanager.domain.datasources.IServiceGatewayProtocol
 import kotlinx.coroutines.CoroutineScope

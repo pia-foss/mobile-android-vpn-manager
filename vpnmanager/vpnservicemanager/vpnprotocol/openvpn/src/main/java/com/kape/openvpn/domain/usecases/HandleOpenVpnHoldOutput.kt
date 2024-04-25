@@ -1,6 +1,8 @@
 package com.kape.openvpn.domain.usecases
 
+import com.kape.openvpn.data.externals.ICache
 import com.kape.openvpn.data.externals.IOpenVpnProcessSocket
+import com.kape.vpnmanager.api.data.externals.IJob
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -22,10 +24,12 @@ import com.kape.openvpn.data.externals.IOpenVpnProcessSocket
 
 internal class HandleOpenVpnHoldOutput(
     private val openVpnProcessSocket: IOpenVpnProcessSocket,
+    private val cache: ICache,
+    private val job: IJob,
 ) : IHandleOpenVpnHoldOutput {
 
     private enum class OpenVpnHoldLinesOfInterest(val line: String) {
-        WAITING_RELEASE("waiting for hold release"),
+        WAITING_RELEASE("waiting for hold release:"),
     }
 
     // region IHandleOpenVpnHoldOutput
@@ -33,7 +37,11 @@ internal class HandleOpenVpnHoldOutput(
         return runCatching {
             when {
                 line.contains(OpenVpnHoldLinesOfInterest.WAITING_RELEASE.line) -> {
-                    openVpnProcessSocket.write("hold release\n").getOrThrow()
+                    val holdReleaseDelaySeconds = line.trim().split(":").last().toLong()
+                    job.delayedJob(delayMillis = holdReleaseDelaySeconds * 1000) {
+                        openVpnProcessSocket.write("hold release\n").getOrThrow()
+                    }
+                    cache.setHoldReleaseJob(job = job)
                 }
             }
         }

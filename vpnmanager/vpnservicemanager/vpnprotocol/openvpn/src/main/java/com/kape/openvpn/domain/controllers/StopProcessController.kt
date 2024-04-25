@@ -20,6 +20,7 @@
 
 package com.kape.openvpn.domain.controllers
 
+import com.kape.openvpn.domain.usecases.ICancelHoldReleaseJob
 import com.kape.openvpn.domain.usecases.IClearCache
 import com.kape.openvpn.domain.usecases.ICloseSocket
 import com.kape.openvpn.domain.usecases.IIsProcessRunning
@@ -44,6 +45,7 @@ import com.kape.openvpn.domain.usecases.IStopProcess
  */
 
 internal class StopProcessController(
+    private val cancelHoldReleaseJob: ICancelHoldReleaseJob,
     private val isProcessRunning: IIsProcessRunning,
     private val closeSocket: ICloseSocket,
     private val stopProcess: IStopProcess,
@@ -52,7 +54,10 @@ internal class StopProcessController(
 
     // region IStopProcessController
     override suspend fun invoke(): Result<Unit> =
-        isProcessRunning()
+        cancelHoldReleaseJob()
+            .mapCatching {
+                isProcessRunning().getOrThrow()
+            }
             .mapCatching {
                 closeSocket().getOrThrow()
             }

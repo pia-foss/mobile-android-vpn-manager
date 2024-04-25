@@ -1,8 +1,8 @@
 package com.kape.vpnmanager.testutils
 
 import android.content.Context
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnmanager.data.externals.IConnectionEventAnnouncer
-import com.kape.vpnmanager.data.externals.ICoroutineContext
 import com.kape.vpnmanager.data.externals.IPermissions
 import com.kape.vpnmanager.data.externals.IServiceManager
 import com.kape.vpnmanager.data.externals.ITargetProvider

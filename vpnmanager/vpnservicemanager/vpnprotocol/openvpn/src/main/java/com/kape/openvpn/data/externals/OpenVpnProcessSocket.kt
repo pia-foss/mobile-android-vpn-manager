@@ -26,6 +26,7 @@ import android.os.ParcelFileDescriptor
 import com.kape.openvpn.domain.usecases.IOpenVpnProcessOutputHandler
 import com.kape.openvpn.presenters.OpenVpnError
 import com.kape.openvpn.presenters.OpenVpnErrorCode
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

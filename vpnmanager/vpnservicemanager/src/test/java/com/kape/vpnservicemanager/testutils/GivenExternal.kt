@@ -1,6 +1,8 @@
 package com.kape.vpnservicemanager.testutils
 
 import android.content.Context
+import com.kape.vpnmanager.api.data.externals.CoroutineContext
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnprotocol.presenters.VPNProtocolBuilder
 import com.kape.vpnprotocol.presenters.VPNProtocolConnectivityStatusChangeCallback
 import com.kape.vpnservicemanager.data.externals.Cache
@@ -9,7 +11,6 @@ import com.kape.vpnservicemanager.data.externals.Connectivity
 import com.kape.vpnservicemanager.data.externals.ICache
 import com.kape.vpnservicemanager.data.externals.IConnectionEventCallback
 import com.kape.vpnservicemanager.data.externals.IConnectivity
-import com.kape.vpnservicemanager.data.externals.ICoroutineContext
 import com.kape.vpnservicemanager.data.externals.IProtocol
 import com.kape.vpnservicemanager.data.externals.IService
 import com.kape.vpnservicemanager.data.externals.IServiceConnection
@@ -46,7 +47,7 @@ internal object GivenExternal {
     fun coroutineContext(
         clientCoroutineContext: kotlin.coroutines.CoroutineContext = Dispatchers.Main,
     ): ICoroutineContext =
-        com.kape.vpnservicemanager.data.externals.CoroutineContext(
+        CoroutineContext(
             clientCoroutineContext = clientCoroutineContext
         )
 

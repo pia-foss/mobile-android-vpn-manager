@@ -1,9 +1,9 @@
 package com.kape.targetprovider.presenters
 
-import com.kape.targetprovider.data.externals.ICoroutineContext
 import com.kape.targetprovider.data.models.TargetProviderServer
 import com.kape.targetprovider.data.models.TargetProviderServerList
 import com.kape.targetprovider.domain.controllers.IGetOptimalServerController
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext

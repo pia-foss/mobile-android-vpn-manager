@@ -1,6 +1,8 @@
 package com.kape.openvpn.presenters
 
-import com.kape.openvpn.data.externals.ICoroutineContext
+import com.kape.openvpn.domain.controllers.IStartProcessController
+import com.kape.openvpn.domain.controllers.IStopProcessController
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -24,8 +26,8 @@ import kotlin.coroutines.CoroutineContext
  */
 
 internal class OpenVpn(
-    private val startProcessController: com.kape.openvpn.domain.controllers.IStartProcessController,
-    private val stopProcessController: com.kape.openvpn.domain.controllers.IStopProcessController,
+    private val startProcessController: IStartProcessController,
+    private val stopProcessController: IStopProcessController,
     private val coroutineContext: ICoroutineContext,
 ) : OpenVpnAPI {
 

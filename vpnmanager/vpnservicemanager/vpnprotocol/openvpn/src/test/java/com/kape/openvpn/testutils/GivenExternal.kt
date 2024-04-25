@@ -2,10 +2,8 @@ package com.kape.openvpn.testutils
 
 import android.content.Context
 import com.kape.openvpn.data.externals.Cache
-import com.kape.openvpn.data.externals.CoroutineContext
 import com.kape.openvpn.data.externals.FilePath
 import com.kape.openvpn.data.externals.ICache
-import com.kape.openvpn.data.externals.ICoroutineContext
 import com.kape.openvpn.data.externals.IFilePath
 import com.kape.openvpn.data.externals.IOpenVpnProcess
 import com.kape.openvpn.data.externals.IOpenVpnProcessBuilder
@@ -13,6 +11,10 @@ import com.kape.openvpn.data.externals.IOpenVpnProcessSocket
 import com.kape.openvpn.data.externals.OpenVpnProcess
 import com.kape.openvpn.data.externals.OpenVpnProcessBuilder
 import com.kape.openvpn.data.externals.OpenVpnProcessSocket
+import com.kape.vpnmanager.api.data.externals.CoroutineContext
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
+import com.kape.vpnmanager.api.data.externals.IJob
+import com.kape.vpnmanager.api.data.externals.Job
 import kotlinx.coroutines.Dispatchers
 
 /*
@@ -66,4 +68,10 @@ internal object GivenExternal {
         OpenVpnProcessSocket(
             coroutineContext = coroutineContext
         )
+
+    fun job(
+        coroutineContext: ICoroutineContext = GivenExternal.coroutineContext(),
+    ): IJob = Job(
+        coroutineContext = coroutineContext
+    )
 }

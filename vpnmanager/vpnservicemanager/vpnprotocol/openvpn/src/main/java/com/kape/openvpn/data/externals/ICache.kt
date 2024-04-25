@@ -21,6 +21,7 @@
 package com.kape.openvpn.data.externals
 
 import com.kape.openvpn.domain.usecases.IOpenVpnProcessOutputHandler
+import com.kape.vpnmanager.api.data.externals.IJob
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -87,4 +88,21 @@ internal interface ICache {
      * @return `Result<Unit>`.
      */
     fun clearProcessOutputHandler(): Result<Unit>
+
+    /**
+     * @param job `IJob`.
+     *
+     * @return `Result<Unit>`.
+     */
+    fun setHoldReleaseJob(job: IJob): Result<Unit>
+
+    /**
+     * @return `Result<IJob>`.
+     */
+    fun getHoldReleaseJob(): Result<IJob>
+
+    /**
+     * @return `Result<Unit>`.
+     */
+    fun clearHoldReleaseJob(): Result<Unit>
 }

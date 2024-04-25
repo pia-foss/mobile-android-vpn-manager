@@ -77,7 +77,6 @@ class GenerateOpenVpnSettingsTest {
         val result = usecase(certificateFilePath).getOrThrow()
 
         // then
-        println(result)
         assertFalse(result.contains(""))
     }
 

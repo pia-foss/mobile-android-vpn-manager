@@ -2,6 +2,7 @@ package com.kape.vpnmanager.data.externals
 
 import android.content.Context
 import android.net.VpnService
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnmanager.presenters.VPNManagerError
 import com.kape.vpnmanager.presenters.VPNManagerErrorCode
 import com.kape.vpnmanager.presenters.VPNManagerPermissionsDependency

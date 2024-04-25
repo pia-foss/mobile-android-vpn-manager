@@ -1,11 +1,11 @@
 package com.kape.vpnservicemanager.testutils
 
 import android.content.Context
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnservicemanager.data.externals.ICache
 import com.kape.vpnservicemanager.data.externals.ICacheProtocol
 import com.kape.vpnservicemanager.data.externals.ICacheService
 import com.kape.vpnservicemanager.data.externals.IConnectivity
-import com.kape.vpnservicemanager.data.externals.ICoroutineContext
 import com.kape.vpnservicemanager.data.externals.IProtocol
 import com.kape.vpnservicemanager.domain.datasources.IServiceGateway
 import com.kape.vpnservicemanager.domain.datasources.IServiceGatewayProtocol

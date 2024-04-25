@@ -24,6 +24,7 @@ import com.kape.openvpn.data.utils.pid
 import com.kape.openvpn.domain.usecases.IOpenVpnProcessOutputHandler
 import com.kape.openvpn.presenters.OpenVpnError
 import com.kape.openvpn.presenters.OpenVpnErrorCode
+import com.kape.vpnmanager.api.data.externals.IJob
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -45,15 +46,15 @@ import com.kape.openvpn.presenters.OpenVpnErrorCode
 
 internal class Cache : ICache {
 
+    private var job: IJob? = null
     private var process: Process? = null
     private var openVpnProcessOutputHandler: IOpenVpnProcessOutputHandler? = null
 
     // region ICache
     override fun clear(): Result<Unit> {
         return clearProcess()
-            .mapCatching {
-                clearProcessOutputHandler().getOrThrow()
-            }
+            .mapCatching { clearProcessOutputHandler().getOrThrow() }
+            .mapCatching { clearHoldReleaseJob().getOrThrow() }
     }
 
     override fun setProcess(process: Process): Result<Unit> {
@@ -89,6 +90,21 @@ internal class Cache : ICache {
 
     override fun clearProcessOutputHandler(): Result<Unit> {
         openVpnProcessOutputHandler = null
+        return Result.success(Unit)
+    }
+
+    override fun setHoldReleaseJob(job: IJob): Result<Unit> {
+        this.job = job
+        return Result.success(Unit)
+    }
+
+    override fun getHoldReleaseJob(): Result<IJob> =
+        runCatching {
+            job ?: throw OpenVpnError(code = OpenVpnErrorCode.HOLD_RELEASE_JOB_UNKNOWN)
+        }
+
+    override fun clearHoldReleaseJob(): Result<Unit> {
+        job = null
         return Result.success(Unit)
     }
     // endregion

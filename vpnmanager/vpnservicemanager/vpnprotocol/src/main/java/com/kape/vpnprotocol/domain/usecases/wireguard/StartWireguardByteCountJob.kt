@@ -20,8 +20,8 @@
 
 package com.kape.vpnprotocol.domain.usecases.wireguard
 
+import com.kape.vpnmanager.api.data.externals.IJob
 import com.kape.vpnprotocol.data.externals.common.ICacheProtocol
-import com.kape.vpnprotocol.data.externals.common.IJob
 import com.kape.vpnprotocol.data.externals.wireguard.ICacheWireguard
 import com.kape.vpnprotocol.data.externals.wireguard.IWireguard
 import com.kape.vpnprotocol.presenters.VPNProtocolError

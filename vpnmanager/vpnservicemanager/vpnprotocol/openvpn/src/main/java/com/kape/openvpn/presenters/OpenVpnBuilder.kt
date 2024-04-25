@@ -2,10 +2,8 @@ package com.kape.openvpn.presenters
 
 import android.content.Context
 import com.kape.openvpn.data.externals.Cache
-import com.kape.openvpn.data.externals.CoroutineContext
 import com.kape.openvpn.data.externals.FilePath
 import com.kape.openvpn.data.externals.ICache
-import com.kape.openvpn.data.externals.ICoroutineContext
 import com.kape.openvpn.data.externals.IFilePath
 import com.kape.openvpn.data.externals.IOpenVpnProcess
 import com.kape.openvpn.data.externals.IOpenVpnProcessBuilder
@@ -13,7 +11,10 @@ import com.kape.openvpn.data.externals.IOpenVpnProcessSocket
 import com.kape.openvpn.data.externals.OpenVpnProcess
 import com.kape.openvpn.data.externals.OpenVpnProcessBuilder
 import com.kape.openvpn.data.externals.OpenVpnProcessSocket
+import com.kape.openvpn.domain.controllers.IStartProcessController
+import com.kape.openvpn.domain.controllers.IStopProcessController
 import com.kape.openvpn.domain.controllers.StopProcessController
+import com.kape.openvpn.domain.usecases.CancelHoldReleaseJob
 import com.kape.openvpn.domain.usecases.ClearCache
 import com.kape.openvpn.domain.usecases.CloseSocket
 import com.kape.openvpn.domain.usecases.HandleOpenVpnByteCountOutput
@@ -24,6 +25,7 @@ import com.kape.openvpn.domain.usecases.HandleOpenVpnNeedOkOutput
 import com.kape.openvpn.domain.usecases.HandleOpenVpnPasswordOutput
 import com.kape.openvpn.domain.usecases.HandleOpenVpnPushOutput
 import com.kape.openvpn.domain.usecases.HandleOpenVpnStateOutput
+import com.kape.openvpn.domain.usecases.ICancelHoldReleaseJob
 import com.kape.openvpn.domain.usecases.IClearCache
 import com.kape.openvpn.domain.usecases.ICloseSocket
 import com.kape.openvpn.domain.usecases.IHandleOpenVpnByteCountOutput
@@ -47,6 +49,10 @@ import com.kape.openvpn.domain.usecases.StartOpenVpnOutputHandler
 import com.kape.openvpn.domain.usecases.StartProcess
 import com.kape.openvpn.domain.usecases.StartProcessOutputReader
 import com.kape.openvpn.domain.usecases.StopProcess
+import com.kape.vpnmanager.api.data.externals.CoroutineContext
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
+import com.kape.vpnmanager.api.data.externals.IJob
+import com.kape.vpnmanager.api.data.externals.Job
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -145,10 +151,12 @@ public class OpenVpnBuilder {
     ): OpenVpnAPI {
         val cache: ICache = Cache()
         val openVpnProcessBuilder: IOpenVpnProcessBuilder = OpenVpnProcessBuilder()
-        val coroutineContext: ICoroutineContext =
-            CoroutineContext(
-                clientCoroutineContext = clientCoroutineContext
-            )
+        val coroutineContext: ICoroutineContext = CoroutineContext(
+            clientCoroutineContext = clientCoroutineContext
+        )
+        val job: IJob = Job(
+            coroutineContext = coroutineContext
+        )
         val openVpnProcessSocket: IOpenVpnProcessSocket = OpenVpnProcessSocket(
             coroutineContext = coroutineContext
         )
@@ -161,6 +169,7 @@ public class OpenVpnBuilder {
         )
         return initializeUseCases(
             cache = cache,
+            job = job,
             openVpnProcess = openVpnProcess,
             openVpnProcessSocket = openVpnProcessSocket,
             openVpnMtuTestResultAnnouncer = openVpnMtuTestResultAnnouncer,
@@ -170,6 +179,7 @@ public class OpenVpnBuilder {
 
     private fun initializeUseCases(
         cache: ICache,
+        job: IJob,
         openVpnProcess: IOpenVpnProcess,
         openVpnProcessSocket: IOpenVpnProcessSocket,
         openVpnMtuTestResultAnnouncer: IOpenVpnMtuTestResultAnnouncer,
@@ -189,7 +199,9 @@ public class OpenVpnBuilder {
             )
         val handleOpenVpnHoldOutput: IHandleOpenVpnHoldOutput =
             HandleOpenVpnHoldOutput(
-                openVpnProcessSocket = openVpnProcessSocket
+                openVpnProcessSocket = openVpnProcessSocket,
+                cache = cache,
+                job = job
             )
         val handleOpenVpnPushOutput: IHandleOpenVpnPushOutput = HandleOpenVpnPushOutput()
         val handleOpenVpnStateOutput: IHandleOpenVpnStateOutput = HandleOpenVpnStateOutput()
@@ -227,6 +239,9 @@ public class OpenVpnBuilder {
         val isProcessStopped: IIsProcessStopped = IsProcessStopped(
             cache = cache
         )
+        val cancelHoldReleaseJob: ICancelHoldReleaseJob = CancelHoldReleaseJob(
+            job = job
+        )
         val clearCache: IClearCache = ClearCache(
             cache = cache
         )
@@ -236,6 +251,7 @@ public class OpenVpnBuilder {
         return initializeControllers(
             isProcessStopped = isProcessStopped,
             isProcessRunning = isProcessRunning,
+            cancelHoldReleaseJob = cancelHoldReleaseJob,
             startOpenVpnOutputHandler = startOpenVpnOutputHandler,
             startProcess = startProcess,
             stopProcess = stopProcess,
@@ -249,6 +265,7 @@ public class OpenVpnBuilder {
     private fun initializeControllers(
         isProcessStopped: IIsProcessStopped,
         isProcessRunning: IIsProcessRunning,
+        cancelHoldReleaseJob: ICancelHoldReleaseJob,
         startOpenVpnOutputHandler: IStartOpenVpnOutputHandler,
         startProcess: IStartProcess,
         stopProcess: IStopProcess,
@@ -257,7 +274,7 @@ public class OpenVpnBuilder {
         closeSocket: ICloseSocket,
         coroutineContext: ICoroutineContext,
     ): OpenVpnAPI {
-        val startProcessController: com.kape.openvpn.domain.controllers.IStartProcessController =
+        val startProcessController: IStartProcessController =
             com.kape.openvpn.domain.controllers.StartProcessController(
                 isProcessStopped = isProcessStopped,
                 startOpenVpnOutputHandler = startOpenVpnOutputHandler,
@@ -265,7 +282,8 @@ public class OpenVpnBuilder {
                 startProcessOutputReader = startProcessOutputReader,
                 clearCache = clearCache
             )
-        val stopProcessController: com.kape.openvpn.domain.controllers.IStopProcessController = StopProcessController(
+        val stopProcessController: IStopProcessController = StopProcessController(
+            cancelHoldReleaseJob = cancelHoldReleaseJob,
             isProcessRunning = isProcessRunning,
             closeSocket = closeSocket,
             stopProcess = stopProcess,

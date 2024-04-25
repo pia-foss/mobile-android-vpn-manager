@@ -18,16 +18,15 @@
  *
  */
 
-package com.kape.vpnprotocol.data.externals.common
+package com.kape.vpnmanager.api.data.externals
 
-import com.kape.vpnprotocol.presenters.VPNProtocolError
-import com.kape.vpnprotocol.presenters.VPNProtocolErrorCode
+import com.kape.vpnmanager.api.data.model.JobError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-internal class Job(
+class Job(
     private val coroutineContext: ICoroutineContext,
 ) : IJob {
 
@@ -48,11 +47,20 @@ internal class Job(
         return Result.success(Unit)
     }
 
+    override fun delayedJob(delayMillis: Long, action: suspend () -> Unit): Result<Unit> {
+        val moduleCoroutineContext = coroutineContext.getModuleCoroutineContext().getOrThrow()
+        job = CoroutineScope(moduleCoroutineContext).launch {
+            delay(delayMillis)
+            action()
+        }
+        return Result.success(Unit)
+    }
+
     override suspend fun cancel(): Result<Unit> =
         job?.let {
             it.cancel()
             it.join()
             Result.success(Unit)
-        } ?: Result.failure(VPNProtocolError(code = VPNProtocolErrorCode.NO_BYTECOUNT_JOB_FOUND))
+        } ?: Result.failure(JobError(code = JobError.JobErrorCode.JOB_NOT_FOUND))
     // endregion
 }

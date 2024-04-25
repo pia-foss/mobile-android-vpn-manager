@@ -18,9 +18,9 @@
  *
  */
 
-package com.kape.vpnprotocol.data.externals.common
+package com.kape.vpnmanager.api.data.externals
 
-internal interface IJob {
+interface IJob {
 
     /**
      * @param delayMillis `Long`.
@@ -29,6 +29,14 @@ internal interface IJob {
      * @return `Result<Unit>`
      */
     suspend fun repeatableJob(delayMillis: Long, action: suspend () -> Unit): Result<Unit>
+
+    /**
+     * @param delayMillis `Long`.
+     * @param action `() -> Unit`.
+     *
+     * @return `Result<Unit>`
+     */
+    fun delayedJob(delayMillis: Long, action: suspend () -> Unit): Result<Unit>
 
     /**
      * @return `Result<Unit>`

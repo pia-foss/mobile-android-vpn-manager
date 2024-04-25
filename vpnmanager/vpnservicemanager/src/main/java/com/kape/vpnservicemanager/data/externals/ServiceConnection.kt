@@ -3,6 +3,7 @@ package com.kape.vpnservicemanager.data.externals
 import android.content.ComponentName
 import android.os.IBinder
 import com.kape.vpnmanager.api.DisconnectReason
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnservicemanager.data.models.VPNServiceServerPeerInformation
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope

@@ -2,6 +2,8 @@ package com.kape.vpnservicemanager.presenters
 
 import android.content.Context
 import com.kape.vpnmanager.api.VPNManagerConnectionStatus
+import com.kape.vpnmanager.api.data.externals.CoroutineContext
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnprotocol.presenters.VPNProtocolAPI
 import com.kape.vpnprotocol.presenters.VPNProtocolBuilder
 import com.kape.vpnservicemanager.data.externals.Cache
@@ -10,7 +12,6 @@ import com.kape.vpnservicemanager.data.externals.Connectivity
 import com.kape.vpnservicemanager.data.externals.ICache
 import com.kape.vpnservicemanager.data.externals.IConnectionEventCallback
 import com.kape.vpnservicemanager.data.externals.IConnectivity
-import com.kape.vpnservicemanager.data.externals.ICoroutineContext
 import com.kape.vpnservicemanager.data.externals.IProtocol
 import com.kape.vpnservicemanager.data.externals.IProtocolByteCountAnnouncer
 import com.kape.vpnservicemanager.data.externals.IServiceConnection
@@ -161,10 +162,9 @@ public class VPNServiceManagerBuilder {
         val cache: ICache = Cache()
         val subnet: ISubnet = Subnet()
         val connectivity: IConnectivity = Connectivity()
-        val coroutineContext: ICoroutineContext =
-            com.kape.vpnservicemanager.data.externals.CoroutineContext(
-                clientCoroutineContext = clientCoroutineContext
-            )
+        val coroutineContext: ICoroutineContext = CoroutineContext(
+            clientCoroutineContext = clientCoroutineContext
+        )
         val connectionEventCallback: IConnectionEventCallback = ConnectionEventCallback(
             connectivityStatusChangeCallback = connectivityStatusChangeCallback
         )

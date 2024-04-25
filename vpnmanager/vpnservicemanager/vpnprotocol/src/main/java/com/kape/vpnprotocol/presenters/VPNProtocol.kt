@@ -1,7 +1,7 @@
 package com.kape.vpnprotocol.presenters
 
 import com.kape.vpnmanager.api.DisconnectReason
-import com.kape.vpnprotocol.data.externals.common.ICoroutineContext
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnprotocol.data.models.VPNProtocolConfiguration
 import com.kape.vpnprotocol.data.models.VPNProtocolServer
 import com.kape.vpnprotocol.data.models.VPNProtocolServerPeerInformation

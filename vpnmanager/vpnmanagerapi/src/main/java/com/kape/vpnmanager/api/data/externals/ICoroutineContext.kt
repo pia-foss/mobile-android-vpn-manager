@@ -1,7 +1,5 @@
-package com.kape.vpnservicemanager.data.externals
+package com.kape.vpnmanager.api.data.externals
 
-import kotlinx.coroutines.asCoroutineDispatcher
-import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
 
 /*
@@ -22,17 +20,15 @@ import kotlin.coroutines.CoroutineContext
  *  Internet Access Android Client.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-internal class CoroutineContext(
-    private val clientCoroutineContext: CoroutineContext,
-    private val moduleCoroutineContext: CoroutineContext =
-        Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
-) : ICoroutineContext {
+interface ICoroutineContext {
 
-    // region ICoroutineContext
-    override fun getClientCoroutineContext(): Result<CoroutineContext> =
-        Result.success(clientCoroutineContext)
+    /**
+     * @return `Result<CoroutineContext>`.
+     */
+    fun getClientCoroutineContext(): Result<CoroutineContext>
 
-    override fun getModuleCoroutineContext(): Result<CoroutineContext> =
-        Result.success(moduleCoroutineContext)
-    // endregion
+    /**
+     * @return `Result<CoroutineContext>`.
+     */
+    fun getModuleCoroutineContext(): Result<CoroutineContext>
 }

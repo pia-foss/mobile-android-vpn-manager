@@ -23,6 +23,8 @@ package com.kape.vpnprotocol.data.externals.common
 import android.content.Context
 import com.kape.openvpn.data.models.OpenVpnServerPeerInformation
 import com.kape.vpnmanager.api.VPNManagerConnectionStatus
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
+import com.kape.vpnmanager.api.data.externals.IJob
 import com.kape.vpnprotocol.data.externals.openvpn.ICacheOpenVpn
 import com.kape.vpnprotocol.data.externals.wireguard.ICacheWireguard
 import com.kape.vpnprotocol.data.externals.wireguard.ICacheWireguardKeys

@@ -1,6 +1,6 @@
 package com.kape.vpnprotocol.data.externals.wireguard
 
-import com.kape.vpnprotocol.data.externals.common.IJob
+import com.kape.vpnmanager.api.data.externals.IJob
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.

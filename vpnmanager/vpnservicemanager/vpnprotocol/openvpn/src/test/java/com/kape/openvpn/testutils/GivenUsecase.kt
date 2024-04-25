@@ -2,9 +2,9 @@ package com.kape.openvpn.testutils
 
 import android.content.Context
 import com.kape.openvpn.data.externals.ICache
-import com.kape.openvpn.data.externals.ICoroutineContext
 import com.kape.openvpn.data.externals.IOpenVpnProcess
 import com.kape.openvpn.data.externals.IOpenVpnProcessSocket
+import com.kape.openvpn.domain.usecases.CancelHoldReleaseJob
 import com.kape.openvpn.domain.usecases.ClearCache
 import com.kape.openvpn.domain.usecases.CloseSocket
 import com.kape.openvpn.domain.usecases.HandleOpenVpnByteCountOutput
@@ -14,6 +14,7 @@ import com.kape.openvpn.domain.usecases.HandleOpenVpnNeedOkOutput
 import com.kape.openvpn.domain.usecases.HandleOpenVpnPasswordOutput
 import com.kape.openvpn.domain.usecases.HandleOpenVpnPushOutput
 import com.kape.openvpn.domain.usecases.HandleOpenVpnStateOutput
+import com.kape.openvpn.domain.usecases.ICancelHoldReleaseJob
 import com.kape.openvpn.domain.usecases.IClearCache
 import com.kape.openvpn.domain.usecases.ICloseSocket
 import com.kape.openvpn.domain.usecases.IHandleOpenVpnByteCountOutput
@@ -35,6 +36,8 @@ import com.kape.openvpn.domain.usecases.StartOpenVpnOutputHandler
 import com.kape.openvpn.domain.usecases.StartProcess
 import com.kape.openvpn.domain.usecases.StartProcessOutputReader
 import com.kape.openvpn.domain.usecases.StopProcess
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
+import com.kape.vpnmanager.api.data.externals.IJob
 import io.mockk.mockk
 
 /*
@@ -59,7 +62,9 @@ internal object GivenUsecase {
 
     fun handleOpenVpnHoldOutput(): IHandleOpenVpnHoldOutput =
         HandleOpenVpnHoldOutput(
-            openVpnProcessSocket = GivenExternal.openVpnProcessSocket()
+            openVpnProcessSocket = GivenExternal.openVpnProcessSocket(),
+            cache = GivenExternal.cache(),
+            job = GivenExternal.job()
         )
 
     fun handleOpenVpnManagementOutput(): IHandleOpenVpnManagementOutput =
@@ -154,5 +159,12 @@ internal object GivenUsecase {
         StartProcessOutputReader(
             cache = cache,
             coroutineContext = coroutineContext
+        )
+
+    fun cancelHoldReleaseJob(
+        job: IJob = GivenExternal.job(),
+    ): ICancelHoldReleaseJob =
+        CancelHoldReleaseJob(
+            job = job
         )
 }

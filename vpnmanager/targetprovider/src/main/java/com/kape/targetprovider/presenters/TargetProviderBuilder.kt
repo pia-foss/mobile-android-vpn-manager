@@ -1,15 +1,15 @@
 package com.kape.targetprovider.presenters
 
 import com.kape.targetprovider.data.externals.Cache
-import com.kape.targetprovider.data.externals.CoroutineContext
 import com.kape.targetprovider.data.externals.ICache
-import com.kape.targetprovider.data.externals.ICoroutineContext
 import com.kape.targetprovider.domain.controllers.GetOptimalServerController
 import com.kape.targetprovider.domain.controllers.IGetOptimalServerController
 import com.kape.targetprovider.domain.usecases.GetOptimalServer
 import com.kape.targetprovider.domain.usecases.IGetOptimalServer
 import com.kape.targetprovider.domain.usecases.ISetServerList
 import com.kape.targetprovider.domain.usecases.SetServerList
+import com.kape.vpnmanager.api.data.externals.CoroutineContext
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.

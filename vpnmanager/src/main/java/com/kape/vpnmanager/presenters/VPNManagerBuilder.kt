@@ -3,12 +3,12 @@ package com.kape.vpnmanager.presenters
 import android.content.Context
 import com.kape.targetprovider.presenters.TargetProviderAPI
 import com.kape.targetprovider.presenters.TargetProviderBuilder
+import com.kape.vpnmanager.api.data.externals.CoroutineContext
+import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnmanager.data.externals.Cache
 import com.kape.vpnmanager.data.externals.ConnectionEventAnnouncer
-import com.kape.vpnmanager.data.externals.CoroutineContext
 import com.kape.vpnmanager.data.externals.ICache
 import com.kape.vpnmanager.data.externals.IConnectionEventAnnouncer
-import com.kape.vpnmanager.data.externals.ICoroutineContext
 import com.kape.vpnmanager.data.externals.IPermissions
 import com.kape.vpnmanager.data.externals.IProtocolByteCountAnnouncer
 import com.kape.vpnmanager.data.externals.IServiceManager

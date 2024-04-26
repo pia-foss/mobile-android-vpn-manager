@@ -60,6 +60,7 @@ internal class GenerateWireguardSettings(
         protocolConfiguration.allowedIps.forEach {
             wireguardSettings.append("allowed_ip=$it\n")
         }
+        wireguardSettings.append("allowed_ip=${addKeyResponse.serverVip}/32\n")
         wireguardSettings.append("endpoint=${protocolConfiguration.wireguardClientConfiguration.server.ip}:${protocolConfiguration.wireguardClientConfiguration.server.port}\n")
         wireguardSettings.append("persistent_keepalive_interval=25\n")
         return Result.success(wireguardSettings.toString())

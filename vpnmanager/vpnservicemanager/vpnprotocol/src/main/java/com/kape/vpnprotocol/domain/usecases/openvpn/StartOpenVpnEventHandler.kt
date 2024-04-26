@@ -61,7 +61,8 @@ internal class StartOpenVpnEventHandler(
             return Result.failure(it)
         }
         return serviceConfigurationFileDescriptorProvider.establish(
-            peerIp = serverPeerInformation.address
+            peerIp = serverPeerInformation.address,
+            gateway = serverPeerInformation.gateway
         )
     }
 

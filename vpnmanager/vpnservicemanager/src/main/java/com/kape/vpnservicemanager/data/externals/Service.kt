@@ -103,13 +103,17 @@ internal class Service :
     // endregion
 
     // region ServiceConfigurationFileDescriptorProvider
-    override fun establish(peerIp: String, dnsIp: String?, mtu: Int?): Result<Int> {
+    override fun establish(peerIp: String, dnsIp: String?, mtu: Int?, gateway: String): Result<Int> {
+        cache.setGateway(gateway)
+
         val allowedIps = getRoutes().getOrElse {
             return Result.failure(it)
         }
+
         val protocolConfiguration = cache.getProtocolConfiguration().getOrElse {
             return Result.failure(it)
         }
+
         val parsedAddress = peerIp.parseIpWithSubnetMask().getOrElse {
             return Result.failure(it)
         }
@@ -174,10 +178,14 @@ internal class Service :
     // region private
     private fun getRoutes(): Result<List<NetworkDetails>> {
         val protocolConfiguration = cache.getProtocolConfiguration().getOrThrow()
+        val gateway = cache.getGateway().getOrNull()
         return if (protocolConfiguration.allowLocalNetworkAccess) {
             // By default allow all public IPs through the tunnel.
             var subnets = IPV4_PUBLIC_NETWORKS.toMutableList().apply {
                 protocolConfiguration.dnsInformation.dnsList.forEach {
+                    add(it.parseIpWithSubnetMask().getOrThrow())
+                }
+                gateway?.let {
                     add(it.parseIpWithSubnetMask().getOrThrow())
                 }
             }.toList()
@@ -197,7 +205,6 @@ internal class Service :
                     protocolConfiguration.openVpnClientConfiguration.socksProxy.serverProxyAddress
                 )
             }
-
             Result.success(subnets)
         } else {
             val result = "0.0.0.0/0".parseIpWithSubnetMask().getOrThrow()

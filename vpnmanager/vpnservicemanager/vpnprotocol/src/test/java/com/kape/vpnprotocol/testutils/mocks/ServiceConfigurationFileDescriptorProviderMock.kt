@@ -24,7 +24,7 @@ internal class ServiceConfigurationFileDescriptorProviderMock :
     ServiceConfigurationFileDescriptorProvider {
 
     // region ServiceConfigurationFileDescriptorProvider
-    override fun establish(peerIp: String, dnsIp: String?, mtu: Int?): Result<Int> {
+    override fun establish(peerIp: String, dnsIp: String?, mtu: Int?, gateway: String): Result<Int> {
         return Result.success(1)
     }
     // endregion

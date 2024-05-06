@@ -41,18 +41,34 @@ internal class Service :
     private lateinit var protocol: IProtocol
     private lateinit var subnet: ISubnet
     private lateinit var cache: ICache
+    private lateinit var onServiceRevoked: () -> Unit
 
     // region VpnService
-    override fun onBind(intent: Intent?): IBinder {
-        return binder
+    override fun onBind(intent: Intent?): IBinder? {
+        return if (intent?.action == SERVICE_INTERFACE) {
+            // Passing in a custom binder for SERVICE_INTERFACE action would prevent the #onRevoke() from being called.
+            super.onBind(intent)
+        } else {
+            binder
+        }
+    }
+
+    override fun onRevoke() {
+        onServiceRevoked()
     }
     // endregion
 
     // region IService
-    override fun bootstrap(protocol: IProtocol, subnet: ISubnet, cache: ICache): Result<Unit> {
+    override fun bootstrap(
+        protocol: IProtocol,
+        subnet: ISubnet,
+        cache: ICache,
+        onServiceRevoked: () -> Unit,
+    ): Result<Unit> {
         this.protocol = protocol
         this.subnet = subnet
         this.cache = cache
+        this.onServiceRevoked = onServiceRevoked
         return Result.success(Unit)
     }
 

@@ -1,6 +1,7 @@
 package com.kape.vpnservicemanager.data.externals
 
 import android.content.ComponentName
+import android.content.Context
 import android.os.IBinder
 import com.kape.vpnmanager.api.DisconnectReason
 import com.kape.vpnmanager.api.data.externals.ICoroutineContext
@@ -29,6 +30,7 @@ import kotlin.coroutines.CoroutineContext
  */
 
 internal class ServiceConnection(
+    private val context: Context,
     private val cache: ICache,
     private val subnet: ISubnet,
     private val protocol: IProtocol,
@@ -68,11 +70,37 @@ internal class ServiceConnection(
                         cache.getService().getOrThrow()
                     }
                     .mapCatching {
-                        it.bootstrap(protocol = protocol, subnet = subnet, cache = cache).getOrThrow()
+                        it.bootstrap(
+                            protocol = protocol,
+                            subnet = subnet,
+                            cache = cache,
+                            onServiceRevoked = ::onServiceRevoked
+                        ).getOrThrow()
                         it.startConnection().getOrThrow()
                     }
             )
         }
+    }
+
+    private fun onServiceRevoked() {
+        CoroutineScope(moduleCoroutineContext).launch {
+            cache.getService()
+                .mapCatching {
+                    stopConnection(DisconnectReason.CONFIGURATION_ERROR).getOrThrow()
+                }
+                .mapCatching {
+                    cache.clear().getOrThrow()
+                }
+        }
+    }
+
+    private suspend fun stopConnection(disconnectReason: DisconnectReason): Result<Unit> {
+        val disconnectResult = stopProtocolConnection(disconnectReason)
+        if (cache.isServiceBound()) {
+            context.unbindService(this)
+            cache.clearServiceBound()
+        }
+        return disconnectResult
     }
 
     override fun onServiceDisconnected(p0: ComponentName?) {

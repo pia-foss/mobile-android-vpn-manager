@@ -34,6 +34,7 @@ internal interface IService {
         protocol: IProtocol,
         subnet: ISubnet,
         cache: ICache,
+        onServiceRevoked: () -> Unit,
     ): Result<Unit>
 
     /**

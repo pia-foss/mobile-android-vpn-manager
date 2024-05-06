@@ -59,6 +59,7 @@ internal object GivenExternal {
         cache: ICache = cache(),
     ): IServiceConnection =
         ServiceConnection(
+            context = context,
             cache = cache,
             subnet = subnet,
             protocol = protocol,

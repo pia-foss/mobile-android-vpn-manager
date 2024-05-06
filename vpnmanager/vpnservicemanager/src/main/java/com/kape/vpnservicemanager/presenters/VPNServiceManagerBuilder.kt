@@ -181,6 +181,7 @@ public class VPNServiceManagerBuilder {
             )
         )
         val serviceConnection: IServiceConnection = ServiceConnection(
+            context = context,
             cache = cache,
             subnet = subnet,
             protocol = protocol,

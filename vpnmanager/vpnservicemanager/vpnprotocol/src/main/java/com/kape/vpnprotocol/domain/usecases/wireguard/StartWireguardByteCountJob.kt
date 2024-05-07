@@ -56,8 +56,12 @@ internal class StartWireguardByteCountJob(
 
     // region private
     private fun jobAction(tunnelHandle: Int) {
-        val configuration = wireguard.configuration(tunnelHandle = tunnelHandle).getOrThrow()
-        val (tx, rx) = getByteCountFromConfigurationOutput(output = configuration).getOrThrow()
+        val configuration = wireguard.configuration(tunnelHandle = tunnelHandle).getOrElse {
+            return
+        }
+        val (tx, rx) = getByteCountFromConfigurationOutput(output = configuration).getOrElse {
+            return
+        }
         cacheProtocol.reportByteCount(tx = tx, rx = rx)
     }
 

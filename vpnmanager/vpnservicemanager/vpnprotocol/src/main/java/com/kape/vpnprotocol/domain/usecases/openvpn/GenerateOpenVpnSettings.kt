@@ -86,12 +86,16 @@ internal class GenerateOpenVpnSettings(
             "--data-ciphers", dataCiphers,
             "--auth", "SHA256",
             "--auth-nocache",
-            "--explicit-exit-notify", "2",
             "--script-security", "2",
             "--remote-cert-tls", "server",
             "--verb", "3",
             "--mute-replay-warnings"
         )
+
+        if (protocolConfiguration.openVpnClientConfiguration.server.transport == VPNTransportProtocol.UDP) {
+            commandLineParams.add("--explicit-exit-notify")
+            commandLineParams.add("2")
+        }
 
         commandLineParams.addAll(protocolConfiguration.openVpnClientConfiguration.additionalParameters.split("\\s+".toRegex()).filter { it.isNotBlank() })
 

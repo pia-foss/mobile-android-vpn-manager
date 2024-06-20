@@ -115,7 +115,10 @@ internal class FilterAdditionalOpenVpnParams : IFilterAdditionalOpenVpnParams {
             "--topology",
             "--tun-mtu",
             "--tun-mtu-extra",
-            "--windows-driver"
+            "--windows-driver",
+            "--cipher",
+            "--pia-signal-settings",
+            "--ncp-disable"
         )
     }
 }

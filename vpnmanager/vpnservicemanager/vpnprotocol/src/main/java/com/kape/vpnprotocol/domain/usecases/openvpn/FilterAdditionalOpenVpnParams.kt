@@ -119,7 +119,10 @@ internal class FilterAdditionalOpenVpnParams : IFilterAdditionalOpenVpnParams {
             "--windows-driver",
             "--cipher",
             "--pia-signal-settings",
-            "--ncp-disable"
+            "--ncp-disable",
+            "--ifconfig-ipv6",
+            "--route-ipv6",
+            "--block-ipv6"
         )
     }
 }

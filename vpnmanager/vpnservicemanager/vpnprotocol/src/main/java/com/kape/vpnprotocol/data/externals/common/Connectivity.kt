@@ -20,10 +20,9 @@
 
 package com.kape.vpnprotocol.data.externals.common
 
-import com.kape.vpnprotocol.presenters.VPNProtocolError
-import com.kape.vpnprotocol.presenters.VPNProtocolErrorCode
 import java.io.IOException
-import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -47,17 +46,17 @@ internal class Connectivity : IConnectivity {
 
     companion object {
         private const val PING_TIMEOUT = 3000
+        private const val PING_PORT = 443
     }
 
     // region IConnectivity
     override suspend fun isNetworkReachable(host: String): Result<Unit> {
         try {
-            val isReachable = InetAddress.getByName(host).isReachable(PING_TIMEOUT)
-            return if (isReachable) {
-                Result.success(Unit)
-            } else {
-                Result.failure(VPNProtocolError(code = VPNProtocolErrorCode.NETWORK_NOT_REACHABLE))
-            }
+            val socket = Socket()
+            socket.tcpNoDelay = true
+            socket.connect(InetSocketAddress(host, PING_PORT), PING_TIMEOUT)
+            socket.close()
+            return Result.success(Unit)
         } catch (exception: IOException) {
             return Result.failure(exception)
         }

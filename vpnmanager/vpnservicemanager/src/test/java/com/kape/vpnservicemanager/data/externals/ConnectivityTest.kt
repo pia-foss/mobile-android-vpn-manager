@@ -32,7 +32,7 @@ internal class ConnectivityTest {
     fun `local host is reachable`() = runTest {
         val connectivity = Connectivity()
 
-        val result = connectivity.isNetworkReachable("127.0.0.1")
+        val result = connectivity.isNetworkReachable("1.1.1.1")
 
         assert(result.isSuccess)
     }

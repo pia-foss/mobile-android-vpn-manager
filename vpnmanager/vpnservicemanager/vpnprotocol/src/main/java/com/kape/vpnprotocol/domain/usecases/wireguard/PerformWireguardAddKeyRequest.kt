@@ -35,7 +35,7 @@ internal class PerformWireguardAddKeyRequest(
 ) : IPerformWireguardAddKeyRequest {
 
     companion object {
-        private const val ADD_KEY_PATH = "/addKey"
+        private const val ADD_KEY_PATH = "addKey"
         private const val HEADER_AUTHORIZATION_KEY = "Authorization"
         private const val PARAMETER_PUBLIC_KEY_KEY = "pubkey"
     }

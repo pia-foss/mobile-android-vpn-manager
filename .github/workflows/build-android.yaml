@@ -12,12 +12,12 @@ jobs:
           cache: gradle
       - name: build
         run: ./gradlew assembleDebug assembleRelease --info --parallel
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: testapp-apk
           path: testapp/build/outputs/apk/
           if-no-files-found: error
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: vpnmanager-aars
           path: vpnmanager/build/outputs/aar/

@@ -49,7 +49,7 @@ internal class FilePath(
 ) : IFilePath {
 
     companion object {
-        private const val EXECUTABLE_LIBRARY_NAME = "libopenvpn-executable.so"
+        private const val EXECUTABLE_LIBRARY_NAME = "libovpnexec.so"
     }
 
     // region IFilePath

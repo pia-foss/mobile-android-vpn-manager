@@ -46,7 +46,7 @@ This will run on OpenBSD. It does not yet support sticky sockets. Fwmark is mapp
 
 ## Building
 
-This requires an installation of [go](https://golang.org) ≥ 1.18.
+This requires an installation of the latest version of [Go](https://go.dev/).
 
 ```
 $ git clone https://git.zx2c4.com/wireguard-go
@@ -56,7 +56,7 @@ $ make
 
 ## License
 
-    Copyright (C) 2017-2023 WireGuard LLC. All Rights Reserved.
+    Copyright (C) 2017-2025 WireGuard LLC. All Rights Reserved.
     
     Permission is hereby granted, free of charge, to any person obtaining a copy of
     this software and associated documentation files (the "Software"), to deal in

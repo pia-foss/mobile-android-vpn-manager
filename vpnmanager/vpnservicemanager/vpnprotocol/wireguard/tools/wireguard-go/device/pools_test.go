@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT
  *
- * Copyright (C) 2017-2023 WireGuard LLC. All Rights Reserved.
+ * Copyright (C) 2017-2025 WireGuard LLC. All Rights Reserved.
  */
 
 package device
@@ -32,7 +32,9 @@ func TestWaitPool(t *testing.T) {
 	wg.Add(workers)
 	var max atomic.Uint32
 	updateMax := func() {
-		count := p.count.Load()
+		p.lock.Lock()
+		count := p.count
+		p.lock.Unlock()
 		if count > p.max {
 			t.Errorf("count (%d) > max (%d)", count, p.max)
 		}
@@ -75,6 +77,54 @@ func BenchmarkWaitPool(b *testing.B) {
 		b.Skip("Not enough cores")
 	}
 	p := NewWaitPool(uint32(workers-4), func() any { return make([]byte, 16) })
+	wg.Add(workers)
+	b.ResetTimer()
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer wg.Done()
+			for trials.Add(-1) > 0 {
+				x := p.Get()
+				time.Sleep(time.Duration(rand.Intn(100)) * time.Microsecond)
+				p.Put(x)
+			}
+		}()
+	}
+	wg.Wait()
+}
+
+func BenchmarkWaitPoolEmpty(b *testing.B) {
+	var wg sync.WaitGroup
+	var trials atomic.Int32
+	trials.Store(int32(b.N))
+	workers := runtime.NumCPU() + 2
+	if workers-4 <= 0 {
+		b.Skip("Not enough cores")
+	}
+	p := NewWaitPool(0, func() any { return make([]byte, 16) })
+	wg.Add(workers)
+	b.ResetTimer()
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer wg.Done()
+			for trials.Add(-1) > 0 {
+				x := p.Get()
+				time.Sleep(time.Duration(rand.Intn(100)) * time.Microsecond)
+				p.Put(x)
+			}
+		}()
+	}
+	wg.Wait()
+}
+
+func BenchmarkSyncPool(b *testing.B) {
+	var wg sync.WaitGroup
+	var trials atomic.Int32
+	trials.Store(int32(b.N))
+	workers := runtime.NumCPU() + 2
+	if workers-4 <= 0 {
+		b.Skip("Not enough cores")
+	}
+	p := sync.Pool{New: func() any { return make([]byte, 16) }}
 	wg.Add(workers)
 	b.ResetTimer()
 	for i := 0; i < workers; i++ {

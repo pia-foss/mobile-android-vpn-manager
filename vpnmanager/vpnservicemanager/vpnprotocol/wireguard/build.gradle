@@ -18,7 +18,11 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
     externalNativeBuild {
         cmake {
             path 'tools/CMakeLists.txt'
@@ -28,14 +32,14 @@ android {
         release {
             externalNativeBuild {
                 cmake {
-                    arguments "-DANDROID_PACKAGE_NAME=com.kape.wireguard", "-DGRADLE_USER_HOME=${project.gradle.gradleUserHomeDir}"
+                    arguments "-DANDROID_PACKAGE_NAME=com.kape.wireguard", "-DGRADLE_USER_HOME=${project.gradle.gradleUserHomeDir}", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON", "-D_FORTIFY_SOURCE=2"
                 }
             }
         }
         debug {
             externalNativeBuild {
                 cmake {
-                    arguments "-DANDROID_PACKAGE_NAME=com.kape.wireguard.debug", "-DGRADLE_USER_HOME=${project.gradle.gradleUserHomeDir}"
+                    arguments "-DANDROID_PACKAGE_NAME=com.kape.wireguard.debug", "-DGRADLE_USER_HOME=${project.gradle.gradleUserHomeDir}", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON", "-D_FORTIFY_SOURCE=2"
                 }
             }
         }

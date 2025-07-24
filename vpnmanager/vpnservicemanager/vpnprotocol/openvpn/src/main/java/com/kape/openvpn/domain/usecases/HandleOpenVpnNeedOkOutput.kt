@@ -1,6 +1,5 @@
 package com.kape.openvpn.domain.usecases
 
-import android.os.Build
 import com.kape.openvpn.data.externals.IOpenVpnProcessSocket
 import com.kape.openvpn.data.models.OpenVpnServerPeerInformation
 import com.kape.openvpn.presenters.OpenVpnProcessEventHandler
@@ -68,11 +67,7 @@ internal class HandleOpenVpnNeedOkOutput(
                     openVpnProcessSocket.write("needok 'DNSSERVER' ok\n").getOrThrow()
                 }
                 line.contains(OpenVpnNeedOkLinesOfInterest.PERSIST_TUN_ACTION.line) -> {
-                    if (Build.VERSION_CODES.KITKAT <= Build.VERSION.SDK_INT) {
-                        openVpnProcessSocket.write("needok 'PERSIST_TUN_ACTION' OPEN_AFTER_CLOSE\n").getOrThrow()
-                    } else {
-                        openVpnProcessSocket.write("needok 'PERSIST_TUN_ACTION' OPEN_BEFORE_CLOSE\n").getOrThrow()
-                    }
+                    openVpnProcessSocket.write("needok 'PERSIST_TUN_ACTION' OPEN_BEFORE_CLOSE\n").getOrThrow()
                 }
                 line.contains(OpenVpnNeedOkLinesOfInterest.OPENTUN.line) -> {
                     serverPeerInformation?.let {

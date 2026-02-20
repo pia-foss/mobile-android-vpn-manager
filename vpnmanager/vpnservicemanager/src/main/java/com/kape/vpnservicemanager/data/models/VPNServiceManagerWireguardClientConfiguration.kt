@@ -25,6 +25,7 @@ package com.kape.vpnservicemanager.data.models
  */
 public data class VPNServiceManagerWireguardClientConfiguration(
     val server: VPNServiceServer,
+    val serverList: List<VPNServiceServer>,
     val token: String,
     val pinningCertificate: String?,
 )

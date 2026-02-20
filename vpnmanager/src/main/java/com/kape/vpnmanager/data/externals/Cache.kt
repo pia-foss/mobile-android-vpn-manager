@@ -31,7 +31,7 @@ internal class Cache(
 
     private var connectionListeners: List<VPNManagerConnectionListener> = listOf()
     private var state = State(
-        configuration = Configuration(null, null),
+        configuration = Configuration(null, null, null),
         hasRequiredPermissionsGranted = false
     )
 

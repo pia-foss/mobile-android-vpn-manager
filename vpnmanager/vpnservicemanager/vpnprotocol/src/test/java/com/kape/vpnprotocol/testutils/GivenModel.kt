@@ -42,6 +42,7 @@ internal object GivenModel {
     ) =
         VPNProtocolOpenVpnConfiguration(
             server = server,
+            serverList = listOf(server),
             caCertificate = caCertificate,
             username = username,
             password = password,
@@ -56,6 +57,7 @@ internal object GivenModel {
     ) =
         VPNProtocolWireguardConfiguration(
             server = server,
+            serverList = listOf(server),
             token = token,
             pinningCertificate = pinningCertificate
         )
@@ -150,6 +152,7 @@ internal object GivenModel {
     ) =
         VPNProtocolOpenVpnConfiguration(
             server = server,
+            serverList = listOf(server),
             caCertificate = caCertificate,
             username = username,
             password = password,
@@ -164,6 +167,7 @@ internal object GivenModel {
     ) =
         VPNProtocolWireguardConfiguration(
             server = server,
+            serverList = listOf(server),
             token = token,
             pinningCertificate = pinningCertificate
         )

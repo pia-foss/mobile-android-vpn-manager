@@ -44,6 +44,7 @@ internal object GivenModel {
     ) =
         VPNServiceManagerOpenVpnClientConfiguration(
             server = server,
+            serverList = listOf(server),
             caCertificate = caCertificate,
             username = username,
             password = password,
@@ -58,6 +59,7 @@ internal object GivenModel {
     ) =
         VPNServiceManagerWireguardClientConfiguration(
             server = server,
+            serverList = listOf(server),
             token = token,
             pinningCertificate = pinningCertificate
         )

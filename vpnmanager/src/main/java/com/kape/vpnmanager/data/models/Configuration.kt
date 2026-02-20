@@ -27,4 +27,5 @@ package com.kape.vpnmanager.data.models
 internal data class Configuration(
     val clientConfiguration: ClientConfiguration?,
     val server: ServerList.Server?,
+    val serverList: ServerList?,
 )

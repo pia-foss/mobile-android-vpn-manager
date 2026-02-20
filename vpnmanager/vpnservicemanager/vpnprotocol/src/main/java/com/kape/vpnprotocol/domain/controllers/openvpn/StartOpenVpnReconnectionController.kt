@@ -66,7 +66,13 @@ internal class StartOpenVpnReconnectionController(
                 getProtocolConfiguration().getOrThrow()
             }
             .mapCatching {
-                isNetworkAvailable(host = it.openVpnClientConfiguration.server.ip).getOrThrow()
+                for (server in it.openVpnClientConfiguration.serverList) {
+                    val result = isNetworkAvailable(server.ip)
+                    if (result.isSuccess) {
+                        break
+                    }
+                    result.getOrThrow()
+                }
             }
             .mapCatching {
                 stopOpenVpnProcess().getOrThrow()

@@ -54,7 +54,8 @@ internal class Protocol(
             allowedIps = allowedIps,
             protocolConfiguration = protocolConfiguration
         ).getOrThrow()
-        val deferred: CompletableDeferred<Result<VPNServiceServerPeerInformation>> = CompletableDeferred()
+        val deferred: CompletableDeferred<Result<VPNServiceServerPeerInformation>> =
+            CompletableDeferred()
         vpnProtocolApi.startConnection(
             vpnService = vpnService,
             protocolConfiguration = adaptedConfiguration,
@@ -95,7 +96,8 @@ internal class Protocol(
     override suspend fun getVpnProtocolLogs(
         protocolTarget: VPNServiceManagerProtocolTarget,
     ): Result<List<String>> {
-        val adaptedProtocolTarget = adaptProtocolTarget(protocolTarget = protocolTarget).getOrThrow()
+        val adaptedProtocolTarget =
+            adaptProtocolTarget(protocolTarget = protocolTarget).getOrThrow()
         val deferred: CompletableDeferred<Result<List<String>>> = CompletableDeferred()
         vpnProtocolApi.getVpnProtocolLogs(protocolTarget = adaptedProtocolTarget) { result ->
             deferred.complete(result)
@@ -133,6 +135,7 @@ internal class Protocol(
         when (protocolTarget) {
             VPNServiceManagerProtocolTarget.OPENVPN ->
                 Result.success(VPNProtocolTarget.OPENVPN)
+
             VPNServiceManagerProtocolTarget.WIREGUARD ->
                 Result.success(VPNProtocolTarget.WIREGUARD)
         }
@@ -154,6 +157,7 @@ internal class Protocol(
                 transport = adaptTransportProtocol(transport = protocolConfiguration.openVpnClientConfiguration.server.transport),
                 ciphers = adaptServiceProtocolCiphers(ciphers = protocolConfiguration.openVpnClientConfiguration.server.ciphers)
             ),
+            serverList = adaptServers(protocolConfiguration.openVpnClientConfiguration.serverList),
             caCertificate = protocolConfiguration.openVpnClientConfiguration.caCertificate,
             username = protocolConfiguration.openVpnClientConfiguration.username,
             password = protocolConfiguration.openVpnClientConfiguration.password,
@@ -168,6 +172,7 @@ internal class Protocol(
                 transport = adaptTransportProtocol(transport = protocolConfiguration.wireguardClientConfiguration.server.transport),
                 ciphers = adaptServiceProtocolCiphers(ciphers = protocolConfiguration.openVpnClientConfiguration.server.ciphers)
             ),
+            serverList = adaptServers(protocolConfiguration.wireguardClientConfiguration.serverList),
             token = protocolConfiguration.wireguardClientConfiguration.token,
             pinningCertificate = protocolConfiguration.wireguardClientConfiguration.pinningCertificate
         )
@@ -185,18 +190,16 @@ internal class Protocol(
 
     private fun adaptServers(
         servers: List<VPNServiceServer>,
-    ): Result<List<VPNProtocolServer>> =
-        Result.success(
-            servers.map {
-                VPNProtocolServer(
-                    ip = it.ip,
-                    port = it.port,
-                    commonOrDistinguishedName = it.commonOrDistinguishedName,
-                    transport = adaptTransportProtocol(transport = it.transport),
-                    ciphers = adaptServiceProtocolCiphers(ciphers = it.ciphers)
-                )
-            }
-        )
+    ): List<VPNProtocolServer> =
+        servers.map {
+            VPNProtocolServer(
+                ip = it.ip,
+                port = it.port,
+                commonOrDistinguishedName = it.commonOrDistinguishedName,
+                transport = adaptTransportProtocol(transport = it.transport),
+                ciphers = adaptServiceProtocolCiphers(ciphers = it.ciphers)
+            )
+        }
 
     private fun adaptServer(
         server: VPNProtocolServer,

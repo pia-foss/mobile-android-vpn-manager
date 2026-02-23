@@ -3,22 +3,26 @@ package com.kape.vpnprotocol.domain.controllers
 import com.kape.vpnprotocol.domain.controllers.wireguard.IStartWireguardReconnectionController
 import com.kape.vpnprotocol.domain.controllers.wireguard.StartWireguardReconnectionController
 import com.kape.vpnprotocol.domain.usecases.common.IGetProtocolConfiguration
-import com.kape.vpnprotocol.domain.usecases.common.IIsNetworkAvailable
 import com.kape.vpnprotocol.domain.usecases.common.IReportConnectivityStatus
+import com.kape.vpnprotocol.domain.usecases.common.ISetProtocolConfiguration
 import com.kape.vpnprotocol.domain.usecases.wireguard.ICreateWireguardTunnel
 import com.kape.vpnprotocol.domain.usecases.wireguard.IDestroyWireguardTunnel
 import com.kape.vpnprotocol.domain.usecases.wireguard.IGenerateWireguardSettings
 import com.kape.vpnprotocol.domain.usecases.wireguard.IGetWireguardTunnelHandle
+import com.kape.vpnprotocol.domain.usecases.wireguard.IPerformWireguardAddKeyRequest
 import com.kape.vpnprotocol.domain.usecases.wireguard.IProtectWireguardTunnelSocket
+import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardAddKeyResponse
 import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardTunnelHandle
 import com.kape.vpnprotocol.testutils.mocks.CreateWireguardTunnelMock
 import com.kape.vpnprotocol.testutils.mocks.DestroyWireguardTunnelMock
 import com.kape.vpnprotocol.testutils.mocks.GenerateWireguardSettingsMock
 import com.kape.vpnprotocol.testutils.mocks.GetProtocolConfigurationMock
 import com.kape.vpnprotocol.testutils.mocks.GetWireguardTunnelHandleMock
-import com.kape.vpnprotocol.testutils.mocks.IsNetworkAvailableMock
+import com.kape.vpnprotocol.testutils.mocks.PerformWireguardAddKeyRequestMock
 import com.kape.vpnprotocol.testutils.mocks.ProtectWireguardTunnelSocketMock
 import com.kape.vpnprotocol.testutils.mocks.ReportConnectivityStatusMock
+import com.kape.vpnprotocol.testutils.mocks.SetProtocolConfigurationMock
+import com.kape.vpnprotocol.testutils.mocks.SetWireguardAddKeyResponseMock
 import com.kape.vpnprotocol.testutils.mocks.SetWireguardTunnelHandleMock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -93,23 +97,6 @@ internal class StartWireguardReconnectionControllerTest {
     }
 
     @Test
-    fun `should fail if there is no network connectivity`() = runTest {
-        // given
-        val isNetworkAvailableMock: IIsNetworkAvailable =
-            IsNetworkAvailableMock(shouldSucceed = false)
-        val startWireguardReconnectionController: IStartWireguardReconnectionController =
-            provideSuccessfulStartWireguardReconnectionController(
-                isNetworkAvailableMock = isNetworkAvailableMock
-            )
-
-        // when
-        val result = startWireguardReconnectionController()
-
-        // then
-        assert(result.isFailure)
-    }
-
-    @Test
     fun `should fail if getting the wireguard tunnel handle failed`() = runTest {
         // given
         val getWireguardTunnelHandleMock: IGetWireguardTunnelHandle =
@@ -134,6 +121,40 @@ internal class StartWireguardReconnectionControllerTest {
         val startWireguardReconnectionController: IStartWireguardReconnectionController =
             provideSuccessfulStartWireguardReconnectionController(
                 destroyWireguardTunnelMock = destroyWireguardTunnelMock
+            )
+
+        // when
+        val result = startWireguardReconnectionController()
+
+        // then
+        assert(result.isFailure)
+    }
+
+    @Test
+    fun `should fail if performing the wireguard add key request failed`() = runTest {
+        // given
+        val performWireguardAddKeyRequestMock: IPerformWireguardAddKeyRequest =
+            PerformWireguardAddKeyRequestMock(shouldSucceed = false)
+        val startWireguardReconnectionController: IStartWireguardReconnectionController =
+            provideSuccessfulStartWireguardReconnectionController(
+                performWireguardAddKeyRequestMock = performWireguardAddKeyRequestMock
+            )
+
+        // when
+        val result = startWireguardReconnectionController()
+
+        // then
+        assert(result.isFailure)
+    }
+
+    @Test
+    fun `should fail if setting the wireguard add key response failed`() = runTest {
+        // given
+        val setWireguardAddKeyResponseMock: ISetWireguardAddKeyResponse =
+            SetWireguardAddKeyResponseMock(shouldSucceed = false)
+        val startWireguardReconnectionController: IStartWireguardReconnectionController =
+            provideSuccessfulStartWireguardReconnectionController(
+                setWireguardAddKeyResponseMock = setWireguardAddKeyResponseMock
             )
 
         // when
@@ -217,12 +238,16 @@ internal class StartWireguardReconnectionControllerTest {
             ReportConnectivityStatusMock(shouldSucceed = true),
         getProtocolConfigurationMock: IGetProtocolConfiguration =
             GetProtocolConfigurationMock(shouldSucceed = true),
-        isNetworkAvailableMock: IIsNetworkAvailable =
-            IsNetworkAvailableMock(shouldSucceed = true),
+        setProtocolConfigurationMock: ISetProtocolConfiguration =
+            SetProtocolConfigurationMock(shouldSucceed = true),
         getWireguardTunnelHandleMock: IGetWireguardTunnelHandle =
             GetWireguardTunnelHandleMock(shouldSucceed = true),
         destroyWireguardTunnelMock: IDestroyWireguardTunnel =
             DestroyWireguardTunnelMock(shouldSucceed = true),
+        performWireguardAddKeyRequestMock: IPerformWireguardAddKeyRequest =
+            PerformWireguardAddKeyRequestMock(shouldSucceed = true),
+        setWireguardAddKeyResponseMock: ISetWireguardAddKeyResponse =
+            SetWireguardAddKeyResponseMock(shouldSucceed = true),
         generateWireguardSettingsMock: IGenerateWireguardSettings =
             GenerateWireguardSettingsMock(shouldSucceed = true),
         createWireguardTunnelMock: ICreateWireguardTunnel =
@@ -235,9 +260,11 @@ internal class StartWireguardReconnectionControllerTest {
         StartWireguardReconnectionController(
             reportConnectivityStatus = reportConnectivityStatusMock,
             getProtocolConfiguration = getProtocolConfigurationMock,
-            isNetworkAvailable = isNetworkAvailableMock,
+            setProtocolConfiguration = setProtocolConfigurationMock,
             getWireguardTunnelHandle = getWireguardTunnelHandleMock,
             destroyWireguardTunnel = destroyWireguardTunnelMock,
+            performWireguardAddKeyRequest = performWireguardAddKeyRequestMock,
+            setWireguardAddKeyResponse = setWireguardAddKeyResponseMock,
             generateWireguardSettings = generateWireguardSettingsMock,
             createWireguardTunnel = createWireguardTunnelMock,
             setWireguardTunnelHandle = setWireguardTunnelHandleMock,

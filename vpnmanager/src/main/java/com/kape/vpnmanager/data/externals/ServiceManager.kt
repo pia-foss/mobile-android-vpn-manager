@@ -4,7 +4,6 @@ import com.kape.vpnmanager.api.DisconnectReason
 import com.kape.vpnmanager.data.models.Configuration
 import com.kape.vpnmanager.data.models.DnsInformation
 import com.kape.vpnmanager.data.models.ProtocolCipher
-import com.kape.vpnmanager.data.models.ServerList
 import com.kape.vpnmanager.data.models.ServerPeerInformation
 import com.kape.vpnmanager.data.models.TransportProtocol
 import com.kape.vpnmanager.presenters.VPNManagerError
@@ -71,8 +70,7 @@ internal class ServiceManager(
     }
 
     override suspend fun getVpnProtocolLogs(protocolTarget: VPNManagerProtocolTarget): Result<List<String>> {
-        val adaptedProtocolTarget =
-            adaptProtocolTarget(protocolTarget = protocolTarget).getOrThrow()
+        val adaptedProtocolTarget = adaptProtocolTarget(protocolTarget = protocolTarget).getOrThrow()
         val deferred: CompletableDeferred<Result<List<String>>> = CompletableDeferred()
         serviceManagerApi.getVpnProtocolLogs(protocolTarget = adaptedProtocolTarget) {
             deferred.complete(it)
@@ -108,22 +106,38 @@ internal class ServiceManager(
                 transport = adaptTransportProtocol(transport = server.transport),
                 ciphers = adaptProtocolCiphers(ciphers = server.ciphers)
             ),
-            serverList = adaptServerList(clientConfiguration.serverList),
             caCertificate = clientConfiguration.openVpnClientConfiguration.caCertificate,
             username = clientConfiguration.openVpnClientConfiguration.username,
             password = clientConfiguration.openVpnClientConfiguration.password,
             socksProxy = clientConfiguration.openVpnClientConfiguration.socksProxy,
             additionalParameters = clientConfiguration.openVpnClientConfiguration.additionalParameters
         )
+        val currentServer = VPNServiceServer(
+            ip = server.ip,
+            port = server.port,
+            commonOrDistinguishedName = server.commonOrDistinguishedName,
+            transport = adaptTransportProtocol(transport = server.transport),
+            ciphers = adaptProtocolCiphers(ciphers = server.ciphers)
+        )
+        val allServers = buildList {
+            add(currentServer)
+            clientConfiguration.serverList.servers
+                .filter { it.ip != server.ip }
+                .forEach { s ->
+                    add(
+                        VPNServiceServer(
+                            ip = s.ip,
+                            port = s.port,
+                            commonOrDistinguishedName = s.commonOrDistinguishedName,
+                            transport = adaptTransportProtocol(transport = s.transport),
+                            ciphers = adaptProtocolCiphers(ciphers = s.ciphers)
+                        )
+                    )
+                }
+        }
         val wireguardClientConfiguration = VPNServiceManagerWireguardClientConfiguration(
-            server = VPNServiceServer(
-                ip = server.ip,
-                port = server.port,
-                commonOrDistinguishedName = server.commonOrDistinguishedName,
-                transport = adaptTransportProtocol(transport = server.transport),
-                ciphers = adaptProtocolCiphers(ciphers = server.ciphers)
-            ),
-            serverList = adaptServerList(clientConfiguration.serverList),
+            server = currentServer,
+            servers = allServers,
             token = clientConfiguration.wireguardClientConfiguration.token,
             pinningCertificate = clientConfiguration.wireguardClientConfiguration.pinningCertificate
         )
@@ -151,7 +165,6 @@ internal class ServiceManager(
         when (protocolTarget) {
             VPNManagerProtocolTarget.OPENVPN ->
                 Result.success(VPNServiceManagerProtocolTarget.OPENVPN)
-
             VPNManagerProtocolTarget.WIREGUARD ->
                 Result.success(VPNServiceManagerProtocolTarget.WIREGUARD)
         }
@@ -180,21 +193,5 @@ internal class ServiceManager(
                 ProtocolCipher.CHA_CHA_20 -> VPNServiceProtocolCipher.CHA_CHA_20
             }
         }
-
-    private fun adaptServerList(list: ServerList?): List<VPNServiceServer> {
-        val servers = mutableListOf<VPNServiceServer>()
-        list?.servers?.forEach {
-            servers.add(
-                VPNServiceServer(
-                    ip = it.ip,
-                    port = it.port,
-                    commonOrDistinguishedName = it.commonOrDistinguishedName,
-                    transport = adaptTransportProtocol(it.transport),
-                    ciphers = adaptProtocolCiphers(it.ciphers)
-                )
-            )
-        }
-        return servers
-    }
     // endregion
 }

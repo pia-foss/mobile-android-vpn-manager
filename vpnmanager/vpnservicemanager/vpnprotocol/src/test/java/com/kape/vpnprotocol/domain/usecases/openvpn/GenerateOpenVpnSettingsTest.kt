@@ -81,16 +81,14 @@ class GenerateOpenVpnSettingsTest {
     }
 
     private fun createOpenVpnConfigWithAdditionalParams(params: String): VPNProtocolConfiguration {
-        val server = VPNProtocolServer(
-            ip = "1.2.3.4",
-            port = 8080,
-            commonOrDistinguishedName = "serverName",
-            transport = VPNTransportProtocol.UDP,
-            ciphers = listOf(VPNProtocolCipher.AES_256_GCM)
-        )
         val openVpnConfig = VPNProtocolOpenVpnConfiguration(
-            server = server,
-            serverList = listOf(server),
+            server = VPNProtocolServer(
+                ip = "1.2.3.4",
+                port = 8080,
+                commonOrDistinguishedName = "serverName",
+                transport = VPNTransportProtocol.UDP,
+                ciphers = listOf(VPNProtocolCipher.AES_256_GCM)
+            ),
             caCertificate = "ca.crt",
             username = "username",
             password = "password",

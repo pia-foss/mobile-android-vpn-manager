@@ -22,13 +22,15 @@ package com.kape.vpnprotocol.domain.controllers.wireguard
 
 import com.kape.vpnmanager.api.VPNManagerConnectionStatus
 import com.kape.vpnprotocol.domain.usecases.common.IGetProtocolConfiguration
-import com.kape.vpnprotocol.domain.usecases.common.IIsNetworkAvailable
 import com.kape.vpnprotocol.domain.usecases.common.IReportConnectivityStatus
+import com.kape.vpnprotocol.domain.usecases.common.ISetProtocolConfiguration
 import com.kape.vpnprotocol.domain.usecases.wireguard.ICreateWireguardTunnel
 import com.kape.vpnprotocol.domain.usecases.wireguard.IDestroyWireguardTunnel
 import com.kape.vpnprotocol.domain.usecases.wireguard.IGenerateWireguardSettings
 import com.kape.vpnprotocol.domain.usecases.wireguard.IGetWireguardTunnelHandle
+import com.kape.vpnprotocol.domain.usecases.wireguard.IPerformWireguardAddKeyRequest
 import com.kape.vpnprotocol.domain.usecases.wireguard.IProtectWireguardTunnelSocket
+import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardAddKeyResponse
 import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardTunnelHandle
 
 /*
@@ -52,9 +54,11 @@ import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardTunnelHandle
 internal class StartWireguardReconnectionController(
     private val reportConnectivityStatus: IReportConnectivityStatus,
     private val getProtocolConfiguration: IGetProtocolConfiguration,
-    private val isNetworkAvailable: IIsNetworkAvailable,
+    private val setProtocolConfiguration: ISetProtocolConfiguration,
     private val getWireguardTunnelHandle: IGetWireguardTunnelHandle,
     private val destroyWireguardTunnel: IDestroyWireguardTunnel,
+    private val performWireguardAddKeyRequest: IPerformWireguardAddKeyRequest,
+    private val setWireguardAddKeyResponse: ISetWireguardAddKeyResponse,
     private val generateWireguardSettings: IGenerateWireguardSettings,
     private val createWireguardTunnel: ICreateWireguardTunnel,
     private val setWireguardTunnelHandle: ISetWireguardTunnelHandle,
@@ -64,40 +68,38 @@ internal class StartWireguardReconnectionController(
     // region IStartWireguardReconnectionController
     override suspend fun invoke(): Result<Unit> =
         reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Reconnecting)
-            .mapCatching {
-                getProtocolConfiguration().getOrThrow()
-            }
-            .mapCatching {
-                for (server in it.wireguardClientConfiguration.serverList) {
-                    val result = isNetworkAvailable(server.ip)
-                    if (result.isSuccess) {
-                        break
-                    }
-                    result.getOrThrow()
+            .mapCatching { getProtocolConfiguration().getOrThrow() }
+            .mapCatching { config ->
+                // Cyclically advance to the next server without connectivity checks.
+                // Connectivity checks use unprotected sockets that route through the broken VPN tunnel
+                // and therefore fail for all servers when the tunnel is down.
+                val servers = config.wireguardClientConfiguration.servers.ifEmpty {
+                    listOf(config.wireguardClientConfiguration.server)
+                }
+                val currentIndex = servers.indexOfFirst { it.ip == config.wireguardClientConfiguration.server.ip }
+                val nextIndex = if (currentIndex < 0) 0 else (currentIndex + 1) % servers.size
+                val nextServer = servers[nextIndex]
+                if (nextServer.ip != config.wireguardClientConfiguration.server.ip) {
+                    val updatedConfig = config.copy(
+                        wireguardClientConfiguration = config.wireguardClientConfiguration.copy(
+                            server = nextServer
+                        )
+                    )
+                    setProtocolConfiguration(protocolConfiguration = updatedConfig).getOrThrow()
                 }
             }
-            .mapCatching {
-                getWireguardTunnelHandle().getOrThrow()
+            .mapCatching { getWireguardTunnelHandle().getOrThrow() }
+            .mapCatching { tunnelHandle -> destroyWireguardTunnel(tunnelHandle = tunnelHandle).getOrThrow() }
+            // With the tunnel destroyed traffic goes directly, so the add-key HTTP request can reach
+            // the server. This also refreshes the server's WireGuard public key for the new config.
+            .mapCatching { performWireguardAddKeyRequest().getOrThrow() }
+            .mapCatching { addKeyResponse ->
+                setWireguardAddKeyResponse(wireguardAddKeyResponse = addKeyResponse).getOrThrow()
             }
-            .mapCatching {
-                destroyWireguardTunnel(tunnelHandle = it).getOrThrow()
-            }
-            .mapCatching {
-                generateWireguardSettings().getOrThrow()
-            }
-            .mapCatching {
-                createWireguardTunnel(generatedSettings = it).getOrThrow()
-            }
-            .mapCatching {
-                setWireguardTunnelHandle(tunnelHandle = it).getOrThrow()
-            }
-            .mapCatching {
-                protectWireguardTunnelSocket().getOrThrow()
-            }
-            .mapCatching {
-                reportConnectivityStatus(
-                    connectivityStatus = VPNManagerConnectionStatus.Connected()
-                ).getOrThrow()
-            }
+            .mapCatching { generateWireguardSettings().getOrThrow() }
+            .mapCatching { settings -> createWireguardTunnel(generatedSettings = settings).getOrThrow() }
+            .mapCatching { newHandle -> setWireguardTunnelHandle(tunnelHandle = newHandle).getOrThrow() }
+            .mapCatching { protectWireguardTunnelSocket().getOrThrow() }
+            .mapCatching { reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Connected()).getOrThrow() }
     // endregion
 }

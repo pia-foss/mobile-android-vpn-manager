@@ -145,7 +145,8 @@ public class VPNProtocolBuilder {
     private var context: Context? = null
     private var clientCoroutineContext: kotlin.coroutines.CoroutineContext? = null
     private var protocolByteCountDependency: VPNProtocolByteCountDependency? = null
-    private var connectivityStatusChangeCallback: VPNProtocolConnectivityStatusChangeCallback? = null
+    private var connectivityStatusChangeCallback: VPNProtocolConnectivityStatusChangeCallback? =
+        null
 
     /**
      * It sets the context to be used within the module.
@@ -306,7 +307,8 @@ public class VPNProtocolBuilder {
         val getTargetProtocol: IGetTargetProtocol = GetTargetProtocol(
             cacheProtocol = cache
         )
-        val filterAdditionalOpenVpnParams: IFilterAdditionalOpenVpnParams = FilterAdditionalOpenVpnParams()
+        val filterAdditionalOpenVpnParams: IFilterAdditionalOpenVpnParams =
+            FilterAdditionalOpenVpnParams()
         val setVpnService: ISetVpnService = SetVpnService(
             cacheService = cache
         )
@@ -337,20 +339,22 @@ public class VPNProtocolBuilder {
         val stopWireguardByteCountJob: IStopWireguardByteCountJob = StopWireguardByteCountJob(
             cacheWireguard = cache
         )
-        val protectWireguardTunnelSocket: IProtectWireguardTunnelSocket = ProtectWireguardTunnelSocket(
-            cacheWireguard = cache,
-            cacheService = cache,
-            wireguard = wireguard
-        )
+        val protectWireguardTunnelSocket: IProtectWireguardTunnelSocket =
+            ProtectWireguardTunnelSocket(
+                cacheWireguard = cache,
+                cacheService = cache,
+                wireguard = wireguard
+            )
         val generateWireguardKeyPair: IGenerateWireguardKeyPair = GenerateWireguardKeyPair(
             wireguardKeyPair = wireguardKeyPair
         )
-        val performWireguardAddKeyRequest: IPerformWireguardAddKeyRequest = PerformWireguardAddKeyRequest(
-            networkClient = networkClient,
-            serializer = serializer,
-            cacheProtocol = cache,
-            cacheKeys = cache
-        )
+        val performWireguardAddKeyRequest: IPerformWireguardAddKeyRequest =
+            PerformWireguardAddKeyRequest(
+                networkClient = networkClient,
+                serializer = serializer,
+                cacheProtocol = cache,
+                cacheKeys = cache
+            )
         val setWireguardAddKeyResponse: ISetWireguardAddKeyResponse = SetWireguardAddKeyResponse(
             cacheKeys = cache
         )
@@ -375,10 +379,11 @@ public class VPNProtocolBuilder {
             cacheProtocol = cache,
             cacheKeys = cache
         )
-        val createOpenVpnCertificateFile: ICreateOpenVpnCertificateFile = CreateOpenVpnCertificateFile(
-            cacheProtocol = cache,
-            file = file
-        )
+        val createOpenVpnCertificateFile: ICreateOpenVpnCertificateFile =
+            CreateOpenVpnCertificateFile(
+                cacheProtocol = cache,
+                file = file
+            )
         val generateOpenVpnSettings: IGenerateOpenVpnSettings = GenerateOpenVpnSettings(
             cacheProtocol = cache,
             file = file
@@ -523,9 +528,11 @@ public class VPNProtocolBuilder {
             StartWireguardReconnectionController(
                 reportConnectivityStatus = reportConnectivityStatus,
                 getProtocolConfiguration = getProtocolConfiguration,
-                isNetworkAvailable = isNetworkAvailable,
+                setProtocolConfiguration = setProtocolConfiguration,
                 getWireguardTunnelHandle = getWireguardTunnelHandle,
                 destroyWireguardTunnel = destroyWireguardTunnel,
+                performWireguardAddKeyRequest = performWireguardAddKeyRequest,
+                setWireguardAddKeyResponse = setWireguardAddKeyResponse,
                 generateWireguardSettings = generateWireguardSettings,
                 createWireguardTunnel = createWireguardTunnel,
                 setWireguardTunnelHandle = setWireguardTunnelHandle,
@@ -570,11 +577,12 @@ public class VPNProtocolBuilder {
                 startOpenVpnProcess = startOpenVpnProcess,
                 waitForOpenVpnProcessConnectedDeferrable = waitForOpenVpnProcessConnectedDeferrable
             )
-        val stopOpenVpnConnectionController: IStopOpenVpnConnectionController = StopOpenVpnConnectionController(
-            reportConnectivityStatus = reportConnectivityStatus,
-            stopOpenVpnProcess = stopOpenVpnProcess,
-            clearCache = clearCache
-        )
+        val stopOpenVpnConnectionController: IStopOpenVpnConnectionController =
+            StopOpenVpnConnectionController(
+                reportConnectivityStatus = reportConnectivityStatus,
+                stopOpenVpnProcess = stopOpenVpnProcess,
+                clearCache = clearCache
+            )
         val startConnectionController: IStartConnectionController = StartConnectionController(
             startOpenVpnConnectionController = startOpenVpnConnectionController,
             startWireguardConnectionController = startWireguardConnectionController

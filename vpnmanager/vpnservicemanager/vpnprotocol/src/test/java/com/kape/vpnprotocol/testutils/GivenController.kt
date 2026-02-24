@@ -253,12 +253,16 @@ internal object GivenController {
             GivenUsecase.reportConnectivityStatus(context = context),
         getProtocolConfiguration: IGetProtocolConfiguration =
             GivenUsecase.getProtocolConfiguration(context = context),
-        isNetworkAvailable: IIsNetworkAvailable =
-            GivenUsecase.isNetworkAvailable(),
+        setProtocolConfiguration: ISetProtocolConfiguration =
+            GivenUsecase.setProtocolConfiguration(context = context),
         getWireguardTunnelHandle: IGetWireguardTunnelHandle =
             GivenUsecase.getWireguardTunnelHandle(context = context),
         destroyWireguardTunnel: IDestroyWireguardTunnel =
             GivenUsecase.destroyWireguardTunnel(),
+        performWireguardAddKeyRequest: IPerformWireguardAddKeyRequest =
+            GivenUsecase.performWireguardAddKeyRequest(context = context),
+        setWireguardAddKeyResponse: ISetWireguardAddKeyResponse =
+            GivenUsecase.setWireguardAddKeyResponse(context = context),
         generateWireguardSettings: IGenerateWireguardSettings =
             GivenUsecase.generateWireguardSettings(context = context),
         createWireguardTunnel: ICreateWireguardTunnel =
@@ -271,9 +275,11 @@ internal object GivenController {
         StartWireguardReconnectionController(
             reportConnectivityStatus = reportConnectivityStatus,
             getProtocolConfiguration = getProtocolConfiguration,
-            isNetworkAvailable = isNetworkAvailable,
+            setProtocolConfiguration = setProtocolConfiguration,
             getWireguardTunnelHandle = getWireguardTunnelHandle,
             destroyWireguardTunnel = destroyWireguardTunnel,
+            performWireguardAddKeyRequest = performWireguardAddKeyRequest,
+            setWireguardAddKeyResponse = setWireguardAddKeyResponse,
             generateWireguardSettings = generateWireguardSettings,
             createWireguardTunnel = createWireguardTunnel,
             setWireguardTunnelHandle = setWireguardTunnelHandle,

@@ -1,5 +1,6 @@
 package com.kape.vpnservicemanager.data.externals
 
+import com.kape.vpnservicemanager.testutils.mocks.CacheMock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -28,18 +29,21 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 internal class ConnectivityTest {
 
+    private val cacheService = CacheMock(emptyMap())
+
     @Test
-    fun `local host is reachable`() = runTest {
-        val connectivity = Connectivity()
+    fun `errors when service is not available`() = runTest {
+        val connectivity = Connectivity(cacheService = cacheService)
 
-        val result = connectivity.isNetworkReachable("1.1.1.1")
+        // 192.0.2.x is TEST-NET — reserved, guaranteed unreachable
+        val result = connectivity.isNetworkReachable("192.0.2.1")
 
-        assert(result.isSuccess)
+        assert(result.isFailure)
     }
 
     @Test
     fun `errors on invalid host`() = runTest {
-        val connectivity = Connectivity()
+        val connectivity = Connectivity(cacheService = cacheService)
 
         val result = connectivity.isNetworkReachable("-1")
 

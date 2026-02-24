@@ -223,10 +223,16 @@ internal object GivenController {
             GivenUsecase.reportConnectivityStatus(context = context),
         getProtocolConfiguration: IGetProtocolConfiguration =
             GivenUsecase.getProtocolConfiguration(context = context),
-        isNetworkAvailable: IIsNetworkAvailable =
-            GivenUsecase.isNetworkAvailable(),
+        setProtocolConfiguration: ISetProtocolConfiguration =
+            GivenUsecase.setProtocolConfiguration(context = context),
         stopOpenVpnProcess: IStopOpenVpnProcess =
             GivenUsecase.stopOpenVpnProcess(),
+        createOpenVpnCertificateFile: ICreateOpenVpnCertificateFile =
+            GivenUsecase.createOpenVpnCertificateFile(context = context),
+        generateOpenVpnSettings: IGenerateOpenVpnSettings =
+            GivenUsecase.generateOpenVpnSettings(context = context),
+        setGeneratedOpenVpnSettings: ISetGeneratedOpenVpnSettings =
+            GivenUsecase.setGeneratedOpenVpnSettings(context = context),
         createOpenVpnProcessConnectedDeferrable: ICreateOpenVpnProcessConnectedDeferrable =
             GivenUsecase.createOpenVpnProcessConnectedDeferrable(context = context),
         startOpenVpnEventHandler: IStartOpenVpnEventHandler =
@@ -239,8 +245,11 @@ internal object GivenController {
         StartOpenVpnReconnectionController(
             reportConnectivityStatus = reportConnectivityStatus,
             getProtocolConfiguration = getProtocolConfiguration,
-            isNetworkAvailable = isNetworkAvailable,
+            setProtocolConfiguration = setProtocolConfiguration,
             stopOpenVpnProcess = stopOpenVpnProcess,
+            createOpenVpnCertificateFile = createOpenVpnCertificateFile,
+            generateOpenVpnSettings = generateOpenVpnSettings,
+            setGeneratedOpenVpnSettings = setGeneratedOpenVpnSettings,
             createOpenVpnProcessConnectedDeferrable = createOpenVpnProcessConnectedDeferrable,
             startOpenVpnEventHandler = startOpenVpnEventHandler,
             startOpenVpnProcess = startOpenVpnProcess,

@@ -22,9 +22,12 @@ package com.kape.vpnprotocol.domain.controllers.openvpn
 
 import com.kape.vpnmanager.api.VPNManagerConnectionStatus
 import com.kape.vpnprotocol.domain.usecases.common.IGetProtocolConfiguration
-import com.kape.vpnprotocol.domain.usecases.common.IIsNetworkAvailable
 import com.kape.vpnprotocol.domain.usecases.common.IReportConnectivityStatus
+import com.kape.vpnprotocol.domain.usecases.common.ISetProtocolConfiguration
+import com.kape.vpnprotocol.domain.usecases.openvpn.ICreateOpenVpnCertificateFile
 import com.kape.vpnprotocol.domain.usecases.openvpn.ICreateOpenVpnProcessConnectedDeferrable
+import com.kape.vpnprotocol.domain.usecases.openvpn.IGenerateOpenVpnSettings
+import com.kape.vpnprotocol.domain.usecases.openvpn.ISetGeneratedOpenVpnSettings
 import com.kape.vpnprotocol.domain.usecases.openvpn.IStartOpenVpnEventHandler
 import com.kape.vpnprotocol.domain.usecases.openvpn.IStartOpenVpnProcess
 import com.kape.vpnprotocol.domain.usecases.openvpn.IStopOpenVpnProcess
@@ -51,8 +54,11 @@ import com.kape.vpnprotocol.domain.usecases.openvpn.IWaitForOpenVpnProcessConnec
 internal class StartOpenVpnReconnectionController(
     private val reportConnectivityStatus: IReportConnectivityStatus,
     private val getProtocolConfiguration: IGetProtocolConfiguration,
-    private val isNetworkAvailable: IIsNetworkAvailable,
+    private val setProtocolConfiguration: ISetProtocolConfiguration,
     private val stopOpenVpnProcess: IStopOpenVpnProcess,
+    private val createOpenVpnCertificateFile: ICreateOpenVpnCertificateFile,
+    private val generateOpenVpnSettings: IGenerateOpenVpnSettings,
+    private val setGeneratedOpenVpnSettings: ISetGeneratedOpenVpnSettings,
     private val createOpenVpnProcessConnectedDeferrable: ICreateOpenVpnProcessConnectedDeferrable,
     private val startOpenVpnEventHandler: IStartOpenVpnEventHandler,
     private val startOpenVpnProcess: IStartOpenVpnProcess,
@@ -62,31 +68,46 @@ internal class StartOpenVpnReconnectionController(
     // region IStartOpenVpnReconnectionController
     override suspend fun invoke(): Result<Unit> =
         reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Reconnecting)
-            .mapCatching {
-                getProtocolConfiguration().getOrThrow()
-            }
-            .mapCatching {
-                isNetworkAvailable(host = it.openVpnClientConfiguration.server.ip).getOrThrow()
-            }
-            .mapCatching {
-                stopOpenVpnProcess().getOrThrow()
-            }
-            .mapCatching {
-                createOpenVpnProcessConnectedDeferrable().getOrThrow()
-            }
-            .mapCatching {
-                startOpenVpnEventHandler().getOrThrow()
-            }
-            .mapCatching {
-                startOpenVpnProcess(openVpnProcessEventHandler = it).getOrThrow()
-            }
-            .mapCatching {
-                waitForOpenVpnProcessConnectedDeferrable().getOrThrow()
-            }
-            .mapCatching {
-                reportConnectivityStatus(
-                    connectivityStatus = VPNManagerConnectionStatus.Connected()
-                ).getOrThrow()
+            .mapCatching { getProtocolConfiguration().getOrThrow() }
+            .mapCatching { config ->
+                val servers = config.openVpnClientConfiguration.servers.ifEmpty {
+                    listOf(config.openVpnClientConfiguration.server)
+                }
+                val currentIndex = servers.indexOfFirst {
+                    it.ip == config.openVpnClientConfiguration.server.ip
+                }
+                val startIndex = if (currentIndex < 0) 0 else (currentIndex + 1) % servers.size
+
+                for (offset in servers.indices) {
+                    val server = servers[(startIndex + offset) % servers.size]
+                    val connected = setProtocolConfiguration(
+                        protocolConfiguration = config.copy(
+                            openVpnClientConfiguration = config.openVpnClientConfiguration.copy(server = server)
+                        )
+                    )
+                        .mapCatching {
+                            stopOpenVpnProcess()
+                            createOpenVpnCertificateFile().getOrThrow()
+                        }
+                        .mapCatching { certFilePath ->
+                            generateOpenVpnSettings(certificateFilePath = certFilePath).getOrThrow()
+                        }
+                        .mapCatching { settings ->
+                            setGeneratedOpenVpnSettings(generatedOpenVpnSettings = settings).getOrThrow()
+                        }
+                        .mapCatching { createOpenVpnProcessConnectedDeferrable().getOrThrow() }
+                        .mapCatching { startOpenVpnEventHandler().getOrThrow() }
+                        .mapCatching { handler ->
+                            startOpenVpnProcess(openVpnProcessEventHandler = handler).getOrThrow()
+                        }
+                        .mapCatching { waitForOpenVpnProcessConnectedDeferrable().getOrThrow() }
+
+                    if (connected.isSuccess) {
+                        reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Connected())
+                        return@mapCatching
+                    }
+                }
+                throw Exception("OpenVPN reconnection failed: no server could be reached")
             }
     // endregion
 }

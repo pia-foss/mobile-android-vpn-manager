@@ -37,6 +37,7 @@ internal object GivenModel {
 
     fun vpnServiceManagerOpenVpnClientConfiguration(
         server: VPNServiceServer = GivenModel.vpnServiceServer(),
+        servers: List<VPNServiceServer> = emptyList(),
         caCertificate: String = "caCertificate",
         username: String = "username",
         password: String = "password",
@@ -44,6 +45,7 @@ internal object GivenModel {
     ) =
         VPNServiceManagerOpenVpnClientConfiguration(
             server = server,
+            servers = servers,
             caCertificate = caCertificate,
             username = username,
             password = password,

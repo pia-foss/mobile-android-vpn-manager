@@ -23,17 +23,23 @@ package com.kape.vpnprotocol.domain.controllers
 import com.kape.vpnprotocol.domain.controllers.openvpn.IStartOpenVpnReconnectionController
 import com.kape.vpnprotocol.domain.controllers.openvpn.StartOpenVpnReconnectionController
 import com.kape.vpnprotocol.domain.usecases.common.IGetProtocolConfiguration
-import com.kape.vpnprotocol.domain.usecases.common.IIsNetworkAvailable
 import com.kape.vpnprotocol.domain.usecases.common.IReportConnectivityStatus
+import com.kape.vpnprotocol.domain.usecases.common.ISetProtocolConfiguration
+import com.kape.vpnprotocol.domain.usecases.openvpn.ICreateOpenVpnCertificateFile
 import com.kape.vpnprotocol.domain.usecases.openvpn.ICreateOpenVpnProcessConnectedDeferrable
+import com.kape.vpnprotocol.domain.usecases.openvpn.IGenerateOpenVpnSettings
+import com.kape.vpnprotocol.domain.usecases.openvpn.ISetGeneratedOpenVpnSettings
 import com.kape.vpnprotocol.domain.usecases.openvpn.IStartOpenVpnEventHandler
 import com.kape.vpnprotocol.domain.usecases.openvpn.IStartOpenVpnProcess
 import com.kape.vpnprotocol.domain.usecases.openvpn.IStopOpenVpnProcess
 import com.kape.vpnprotocol.domain.usecases.openvpn.IWaitForOpenVpnProcessConnectedDeferrable
+import com.kape.vpnprotocol.testutils.mocks.CreateOpenVpnCertificateFileMock
 import com.kape.vpnprotocol.testutils.mocks.CreateOpenVpnProcessConnectedDeferrableMock
+import com.kape.vpnprotocol.testutils.mocks.GenerateOpenVpnSettingsMock
 import com.kape.vpnprotocol.testutils.mocks.GetProtocolConfigurationMock
-import com.kape.vpnprotocol.testutils.mocks.IsNetworkAvailableMock
 import com.kape.vpnprotocol.testutils.mocks.ReportConnectivityStatusMock
+import com.kape.vpnprotocol.testutils.mocks.SetGeneratedOpenVpnSettingsMock
+import com.kape.vpnprotocol.testutils.mocks.SetProtocolConfigurationMock
 import com.kape.vpnprotocol.testutils.mocks.StartOpenVpnEventHandlerMock
 import com.kape.vpnprotocol.testutils.mocks.StartOpenVpnProcessMock
 import com.kape.vpnprotocol.testutils.mocks.StopOpenVpnProcessMock
@@ -111,13 +117,13 @@ internal class StartOpenVpnReconnectionControllerTest {
     }
 
     @Test
-    fun `should fail if there is no network connectivity`() = runTest {
+    fun `should fail if setting the protocol configuration failed`() = runTest {
         // given
-        val isNetworkAvailableMock: IIsNetworkAvailable =
-            IsNetworkAvailableMock(shouldSucceed = false)
+        val setProtocolConfigurationMock: ISetProtocolConfiguration =
+            SetProtocolConfigurationMock(shouldSucceed = false)
         val startOpenVpnReconnectionController: IStartOpenVpnReconnectionController =
             provideSuccessfulStartOpenVpnReconnectionController(
-                isNetworkAvailableMock = isNetworkAvailableMock
+                setProtocolConfigurationMock = setProtocolConfigurationMock
             )
 
         // when
@@ -128,13 +134,47 @@ internal class StartOpenVpnReconnectionControllerTest {
     }
 
     @Test
-    fun `should fail if stopping the open vpn process failed`() = runTest {
+    fun `should fail if creating the open vpn certificate file failed`() = runTest {
         // given
-        val stopOpenVpnProcessMock: IStopOpenVpnProcess =
-            StopOpenVpnProcessMock(shouldSucceed = false)
+        val createOpenVpnCertificateFileMock: ICreateOpenVpnCertificateFile =
+            CreateOpenVpnCertificateFileMock(shouldSucceed = false)
         val startOpenVpnReconnectionController: IStartOpenVpnReconnectionController =
             provideSuccessfulStartOpenVpnReconnectionController(
-                stopOpenVpnProcessMock = stopOpenVpnProcessMock
+                createOpenVpnCertificateFileMock = createOpenVpnCertificateFileMock
+            )
+
+        // when
+        val result = startOpenVpnReconnectionController()
+
+        // then
+        assert(result.isFailure)
+    }
+
+    @Test
+    fun `should fail if generating the open vpn settings failed`() = runTest {
+        // given
+        val generateOpenVpnSettingsMock: IGenerateOpenVpnSettings =
+            GenerateOpenVpnSettingsMock(shouldSucceed = false)
+        val startOpenVpnReconnectionController: IStartOpenVpnReconnectionController =
+            provideSuccessfulStartOpenVpnReconnectionController(
+                generateOpenVpnSettingsMock = generateOpenVpnSettingsMock
+            )
+
+        // when
+        val result = startOpenVpnReconnectionController()
+
+        // then
+        assert(result.isFailure)
+    }
+
+    @Test
+    fun `should fail if setting the generated open vpn settings failed`() = runTest {
+        // given
+        val setGeneratedOpenVpnSettingsMock: ISetGeneratedOpenVpnSettings =
+            SetGeneratedOpenVpnSettingsMock(shouldSucceed = false)
+        val startOpenVpnReconnectionController: IStartOpenVpnReconnectionController =
+            provideSuccessfulStartOpenVpnReconnectionController(
+                setGeneratedOpenVpnSettingsMock = setGeneratedOpenVpnSettingsMock
             )
 
         // when
@@ -218,10 +258,16 @@ internal class StartOpenVpnReconnectionControllerTest {
             ReportConnectivityStatusMock(shouldSucceed = true),
         getProtocolConfigurationMock: IGetProtocolConfiguration =
             GetProtocolConfigurationMock(shouldSucceed = true),
-        isNetworkAvailableMock: IIsNetworkAvailable =
-            IsNetworkAvailableMock(shouldSucceed = true),
+        setProtocolConfigurationMock: ISetProtocolConfiguration =
+            SetProtocolConfigurationMock(shouldSucceed = true),
         stopOpenVpnProcessMock: IStopOpenVpnProcess =
             StopOpenVpnProcessMock(shouldSucceed = true),
+        createOpenVpnCertificateFileMock: ICreateOpenVpnCertificateFile =
+            CreateOpenVpnCertificateFileMock(shouldSucceed = true),
+        generateOpenVpnSettingsMock: IGenerateOpenVpnSettings =
+            GenerateOpenVpnSettingsMock(shouldSucceed = true),
+        setGeneratedOpenVpnSettingsMock: ISetGeneratedOpenVpnSettings =
+            SetGeneratedOpenVpnSettingsMock(shouldSucceed = true),
         createOpenVpnProcessConnectedDeferrableMock: ICreateOpenVpnProcessConnectedDeferrable =
             CreateOpenVpnProcessConnectedDeferrableMock(shouldSucceed = true),
         startOpenVpnEventHandlerMock: IStartOpenVpnEventHandler =
@@ -234,8 +280,11 @@ internal class StartOpenVpnReconnectionControllerTest {
         StartOpenVpnReconnectionController(
             reportConnectivityStatus = reportConnectivityStatusMock,
             getProtocolConfiguration = getProtocolConfigurationMock,
-            isNetworkAvailable = isNetworkAvailableMock,
+            setProtocolConfiguration = setProtocolConfigurationMock,
             stopOpenVpnProcess = stopOpenVpnProcessMock,
+            createOpenVpnCertificateFile = createOpenVpnCertificateFileMock,
+            generateOpenVpnSettings = generateOpenVpnSettingsMock,
+            setGeneratedOpenVpnSettings = setGeneratedOpenVpnSettingsMock,
             createOpenVpnProcessConnectedDeferrable = createOpenVpnProcessConnectedDeferrableMock,
             startOpenVpnEventHandler = startOpenVpnEventHandlerMock,
             startOpenVpnProcess = startOpenVpnProcessMock,

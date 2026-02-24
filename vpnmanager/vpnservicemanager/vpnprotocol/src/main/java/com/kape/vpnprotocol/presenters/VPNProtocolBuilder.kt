@@ -570,8 +570,11 @@ public class VPNProtocolBuilder {
             StartOpenVpnReconnectionController(
                 reportConnectivityStatus = reportConnectivityStatus,
                 getProtocolConfiguration = getProtocolConfiguration,
-                isNetworkAvailable = isNetworkAvailable,
+                setProtocolConfiguration = setProtocolConfiguration,
                 stopOpenVpnProcess = stopOpenVpnProcess,
+                createOpenVpnCertificateFile = createOpenVpnCertificateFile,
+                generateOpenVpnSettings = generateOpenVpnSettings,
+                setGeneratedOpenVpnSettings = setGeneratedOpenVpnSettings,
                 createOpenVpnProcessConnectedDeferrable = createOpenVpnProcessConnectedDeferrable,
                 startOpenVpnEventHandler = startOpenVpnEventHandler,
                 startOpenVpnProcess = startOpenVpnProcess,

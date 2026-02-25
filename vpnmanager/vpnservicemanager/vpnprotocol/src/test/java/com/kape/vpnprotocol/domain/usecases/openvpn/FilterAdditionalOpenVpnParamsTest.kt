@@ -2,6 +2,7 @@ package com.kape.vpnprotocol.domain.usecases.openvpn
 
 import com.kape.vpnprotocol.testutils.GivenModel
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /*
@@ -113,5 +114,21 @@ class FilterAdditionalOpenVpnParamsTest {
 
         // then
         assert(expectedOutput.contentEquals(filteredConfig.getOrNull()?.openVpnClientConfiguration?.additionalParameters))
+    }
+
+    @Test
+    fun `servers list is preserved through the filter`() = runTest {
+        // given
+        val server1 = GivenModel.vpnProtocolServer(ip = "1.1.1.1")
+        val server2 = GivenModel.vpnProtocolServer(ip = "2.2.2.2")
+        val servers = listOf(server1, server2)
+        val openVpnConfig = GivenModel.openVpnConfig(servers = servers)
+        val config = GivenModel.protocolConfiguration(openVpnClientConfiguration = openVpnConfig)
+
+        // when
+        val filteredConfig = usecase(config)
+
+        // then
+        assertEquals(servers, filteredConfig.getOrNull()?.openVpnClientConfiguration?.servers)
     }
 }

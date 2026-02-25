@@ -93,8 +93,10 @@ internal object GivenExternal {
     fun service(): IService =
         Service()
 
-    fun connectivity(): IConnectivity =
-        Connectivity()
+    fun connectivity(
+        cacheService: ICache = cache(),
+    ): IConnectivity =
+        Connectivity(cacheService = cacheService)
 
     fun subnet(): ISubnet =
         Subnet()

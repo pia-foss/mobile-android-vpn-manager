@@ -30,6 +30,7 @@ import com.kape.vpnmanager.api.OpenVpnSocksProxyDetails
  */
 public data class VPNServiceManagerOpenVpnClientConfiguration(
     val server: VPNServiceServer,
+    val servers: List<VPNServiceServer> = emptyList(),
     val caCertificate: String?,
     val username: String,
     val password: String,

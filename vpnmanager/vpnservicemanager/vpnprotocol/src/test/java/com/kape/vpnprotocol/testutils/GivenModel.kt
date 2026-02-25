@@ -142,6 +142,7 @@ internal object GivenModel {
 
     fun openVpnConfig(
         server: VPNProtocolServer = vpnProtocolServer(),
+        servers: List<VPNProtocolServer> = emptyList(),
         caCertificate: String = "caCertificate",
         username: String = "username",
         password: String = "password",
@@ -150,6 +151,7 @@ internal object GivenModel {
     ) =
         VPNProtocolOpenVpnConfiguration(
             server = server,
+            servers = servers,
             caCertificate = caCertificate,
             username = username,
             password = password,

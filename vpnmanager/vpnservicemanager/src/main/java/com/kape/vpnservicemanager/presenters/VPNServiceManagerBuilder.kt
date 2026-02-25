@@ -161,7 +161,7 @@ public class VPNServiceManagerBuilder {
     ): VPNServiceManagerAPI {
         val cache: ICache = Cache()
         val subnet: ISubnet = Subnet()
-        val connectivity: IConnectivity = Connectivity()
+        val connectivity: IConnectivity = Connectivity(cacheService = cache)
         val coroutineContext: ICoroutineContext = CoroutineContext(
             clientCoroutineContext = clientCoroutineContext
         )

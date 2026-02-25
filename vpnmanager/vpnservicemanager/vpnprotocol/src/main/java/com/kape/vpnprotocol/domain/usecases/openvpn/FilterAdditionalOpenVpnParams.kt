@@ -38,6 +38,7 @@ internal class FilterAdditionalOpenVpnParams : IFilterAdditionalOpenVpnParams {
     private fun filterOpenVpnClientConfiguration(openVpnConfig: VPNProtocolOpenVpnConfiguration): VPNProtocolOpenVpnConfiguration =
         VPNProtocolOpenVpnConfiguration(
             server = openVpnConfig.server,
+            servers = openVpnConfig.servers,
             caCertificate = openVpnConfig.caCertificate,
             username = openVpnConfig.username,
             password = openVpnConfig.password,

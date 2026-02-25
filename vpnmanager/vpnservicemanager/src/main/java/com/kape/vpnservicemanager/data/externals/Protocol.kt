@@ -146,6 +146,9 @@ internal class Protocol(
         }
 
         val adaptedAllowedIps = allowedIps.map { "${it.address}/${it.prefix}" }
+        val adaptedOpenVpnServers = adaptServers(
+            servers = protocolConfiguration.openVpnClientConfiguration.servers
+        ).getOrElse { return Result.failure(it) }
         val openVpnClientConfiguration = VPNProtocolOpenVpnConfiguration(
             server = VPNProtocolServer(
                 ip = protocolConfiguration.openVpnClientConfiguration.server.ip,
@@ -154,6 +157,7 @@ internal class Protocol(
                 transport = adaptTransportProtocol(transport = protocolConfiguration.openVpnClientConfiguration.server.transport),
                 ciphers = adaptServiceProtocolCiphers(ciphers = protocolConfiguration.openVpnClientConfiguration.server.ciphers)
             ),
+            servers = adaptedOpenVpnServers,
             caCertificate = protocolConfiguration.openVpnClientConfiguration.caCertificate,
             username = protocolConfiguration.openVpnClientConfiguration.username,
             password = protocolConfiguration.openVpnClientConfiguration.password,

@@ -98,20 +98,6 @@ internal class ServiceManager(
             return Result.failure(it)
         }
 
-        val openVpnClientConfiguration = VPNServiceManagerOpenVpnClientConfiguration(
-            server = VPNServiceServer(
-                ip = server.ip,
-                port = server.port,
-                commonOrDistinguishedName = server.commonOrDistinguishedName,
-                transport = adaptTransportProtocol(transport = server.transport),
-                ciphers = adaptProtocolCiphers(ciphers = server.ciphers)
-            ),
-            caCertificate = clientConfiguration.openVpnClientConfiguration.caCertificate,
-            username = clientConfiguration.openVpnClientConfiguration.username,
-            password = clientConfiguration.openVpnClientConfiguration.password,
-            socksProxy = clientConfiguration.openVpnClientConfiguration.socksProxy,
-            additionalParameters = clientConfiguration.openVpnClientConfiguration.additionalParameters
-        )
         val currentServer = VPNServiceServer(
             ip = server.ip,
             port = server.port,
@@ -135,6 +121,15 @@ internal class ServiceManager(
                     )
                 }
         }
+        val openVpnClientConfiguration = VPNServiceManagerOpenVpnClientConfiguration(
+            server = currentServer,
+            servers = allServers,
+            caCertificate = clientConfiguration.openVpnClientConfiguration.caCertificate,
+            username = clientConfiguration.openVpnClientConfiguration.username,
+            password = clientConfiguration.openVpnClientConfiguration.password,
+            socksProxy = clientConfiguration.openVpnClientConfiguration.socksProxy,
+            additionalParameters = clientConfiguration.openVpnClientConfiguration.additionalParameters
+        )
         val wireguardClientConfiguration = VPNServiceManagerWireguardClientConfiguration(
             server = currentServer,
             servers = allServers,

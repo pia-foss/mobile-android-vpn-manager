@@ -24,8 +24,10 @@ import com.kape.vpnmanager.api.DisconnectReason
 import com.kape.vpnmanager.api.VPNManagerConnectionStatus
 import com.kape.vpnprotocol.data.models.VPNProtocolConfiguration
 import com.kape.vpnprotocol.data.models.VPNProtocolServerPeerInformation
+import com.kape.vpnprotocol.data.models.mapToApiModel
 import com.kape.vpnprotocol.data.utils.getOrFail
 import com.kape.vpnprotocol.domain.usecases.common.IClearCache
+import com.kape.vpnprotocol.domain.usecases.common.IGetProtocolConfiguration
 import com.kape.vpnprotocol.domain.usecases.common.IGetServerPeerInformation
 import com.kape.vpnprotocol.domain.usecases.common.IIsNetworkAvailable
 import com.kape.vpnprotocol.domain.usecases.common.IReportConnectivityStatus
@@ -45,6 +47,7 @@ import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardTunnelHandle
 import com.kape.vpnprotocol.domain.usecases.wireguard.IStartWireguardByteCountJob
 import com.kape.vpnprotocol.presenters.ServiceConfigurationFileDescriptorProvider
 import com.kape.vpnprotocol.presenters.VPNProtocolService
+import com.kape.vpnprotocol.presenters.mapToApiModel
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -82,6 +85,7 @@ internal class StartWireguardConnectionController(
     private val startWireguardByteCountJob: IStartWireguardByteCountJob,
     private val setServerPeerInformation: ISetServerPeerInformation,
     private val getServerPeerInformation: IGetServerPeerInformation,
+    private val getProtocolConfiguration: IGetProtocolConfiguration,
     private val clearCache: IClearCache,
 ) : IStartWireguardConnectionController {
 
@@ -173,9 +177,14 @@ internal class StartWireguardConnectionController(
                     handleFailure(throwable, DisconnectReason.CONFIGURATION_ERROR)
                 }
             }
+            .mapCatching { getProtocolConfiguration().getOrThrow() }
             .mapCatching {
                 reportConnectivityStatus(
-                    connectivityStatus = VPNManagerConnectionStatus.Connected()
+                    connectivityStatus = VPNManagerConnectionStatus.Connected(
+                        serverIp = it.wireguardClientConfiguration.server.ip,
+                        transportMode = it.wireguardClientConfiguration.server.transport.mapToApiModel(),
+                        vpnProtocol = it.protocolTarget.mapToApiModel()
+                    )
                 ).getOrFail { throwable ->
                     handleFailure(throwable, DisconnectReason.CONFIGURATION_ERROR)
                 }

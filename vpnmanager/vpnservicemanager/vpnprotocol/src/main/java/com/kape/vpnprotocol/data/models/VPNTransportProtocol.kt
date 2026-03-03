@@ -20,7 +20,14 @@
 
 package com.kape.vpnprotocol.data.models
 
+import com.kape.vpnmanager.api.data.model.TransportMode
+
 enum class VPNTransportProtocol {
     UDP,
     TCP,
+}
+
+fun VPNTransportProtocol.mapToApiModel(): TransportMode = when (this) {
+    VPNTransportProtocol.UDP -> TransportMode.UDP
+    VPNTransportProtocol.TCP -> TransportMode.TCP
 }

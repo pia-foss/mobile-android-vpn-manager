@@ -522,6 +522,7 @@ public class VPNProtocolBuilder {
                 startWireguardByteCountJob = startWireguardByteCountJob,
                 setServerPeerInformation = setServerPeerInformation,
                 getServerPeerInformation = getServerPeerInformation,
+                getProtocolConfiguration = getProtocolConfiguration,
                 clearCache = clearCache
             )
         val startWireguardReconnectionController: IStartWireguardReconnectionController =
@@ -564,6 +565,7 @@ public class VPNProtocolBuilder {
                 generateOpenVpnServerPeerInformation = generateOpenVpnServerPeerInformation,
                 setServerPeerInformation = setServerPeerInformation,
                 getServerPeerInformation = getServerPeerInformation,
+                getProtocolConfiguration = getProtocolConfiguration,
                 clearCache = clearCache
             )
         val startOpenVpnReconnectionController: IStartOpenVpnReconnectionController =

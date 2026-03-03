@@ -1,6 +1,7 @@
 package com.kape.vpnprotocol.presenters
 
 import com.kape.vpnmanager.api.DisconnectReason
+import com.kape.vpnmanager.api.data.model.VpnProtocol
 import com.kape.vpnprotocol.data.models.VPNProtocolConfiguration
 import com.kape.vpnprotocol.data.models.VPNProtocolServer
 import com.kape.vpnprotocol.data.models.VPNProtocolServerPeerInformation
@@ -128,6 +129,11 @@ public interface ServiceConfigurationFileDescriptorProvider {
 public enum class VPNProtocolTarget {
     OPENVPN,
     WIREGUARD,
+}
+
+fun VPNProtocolTarget.mapToApiModel(): VpnProtocol = when (this) {
+    VPNProtocolTarget.OPENVPN -> VpnProtocol.OPENVPN
+    VPNProtocolTarget.WIREGUARD -> VpnProtocol.WIREGUARD
 }
 
 /**

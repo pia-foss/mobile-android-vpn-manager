@@ -119,6 +119,8 @@ internal object GivenController {
             GivenUsecase.setServerPeerInformation(context = context),
         getServerPeerInformation: IGetServerPeerInformation =
             GivenUsecase.getServerPeerInformation(context = context),
+        getProtocolConfiguration: IGetProtocolConfiguration =
+            GivenUsecase.getProtocolConfiguration(context = context),
         clearCache: IClearCache =
             GivenUsecase.clearCache(context = context),
     ): IStartOpenVpnConnectionController =
@@ -139,6 +141,7 @@ internal object GivenController {
             generateOpenVpnServerPeerInformation = generateOpenVpnServerPeerInformation,
             setServerPeerInformation = setServerPeerInformation,
             getServerPeerInformation = getServerPeerInformation,
+            getProtocolConfiguration = getProtocolConfiguration,
             clearCache = clearCache
         )
 
@@ -178,6 +181,8 @@ internal object GivenController {
             GivenUsecase.setServerPeerInformation(context = context),
         getServerPeerInformation: IGetServerPeerInformation =
             GivenUsecase.getServerPeerInformation(context = context),
+        getProtocolConfiguration: IGetProtocolConfiguration =
+            GivenUsecase.getProtocolConfiguration(context = context),
         clearCache: IClearCache =
             GivenUsecase.clearCache(context = context),
     ): IStartWireguardConnectionController =
@@ -199,6 +204,7 @@ internal object GivenController {
             startWireguardByteCountJob = startWireguardByteCountJob,
             setServerPeerInformation = setServerPeerInformation,
             getServerPeerInformation = getServerPeerInformation,
+            getProtocolConfiguration = getProtocolConfiguration,
             clearCache = clearCache
         )
 

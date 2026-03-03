@@ -1,6 +1,8 @@
 package com.kape.vpnmanager.data.externals
 
 import com.kape.vpnmanager.api.VPNManagerConnectionStatus
+import com.kape.vpnmanager.api.data.model.TransportMode
+import com.kape.vpnmanager.api.data.model.VpnProtocol
 import com.kape.vpnmanager.data.models.TransportProtocol
 import com.kape.vpnmanager.presenters.VPNManagerConnectionListener
 import com.kape.vpnmanager.presenters.VPNManagerProtocolTarget
@@ -51,7 +53,7 @@ class ConnectionEventAnnouncerTest {
 
         // when
         cache.setConnectionListeners(connectionListeners)
-        connectionEventAnnouncer.handleConnectivityStatusChange(VPNManagerConnectionStatus.Connected())
+        connectionEventAnnouncer.handleConnectivityStatusChange(VPNManagerConnectionStatus.Connected(serverIp = "", vpnProtocol = VpnProtocol.OPENVPN, transportMode = TransportMode.TCP))
 
         // then
         assert((firstConnectionListenerMock as VPNManagerConnectionListenerMock).invocationsCounter == 1)

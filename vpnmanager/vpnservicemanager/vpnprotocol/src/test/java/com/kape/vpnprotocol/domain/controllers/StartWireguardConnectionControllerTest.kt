@@ -3,6 +3,7 @@ package com.kape.vpnprotocol.domain.controllers
 import com.kape.vpnprotocol.domain.controllers.wireguard.IStartWireguardConnectionController
 import com.kape.vpnprotocol.domain.controllers.wireguard.StartWireguardConnectionController
 import com.kape.vpnprotocol.domain.usecases.common.IClearCache
+import com.kape.vpnprotocol.domain.usecases.common.IGetProtocolConfiguration
 import com.kape.vpnprotocol.domain.usecases.common.IGetServerPeerInformation
 import com.kape.vpnprotocol.domain.usecases.common.IIsNetworkAvailable
 import com.kape.vpnprotocol.domain.usecases.common.IReportConnectivityStatus
@@ -26,6 +27,7 @@ import com.kape.vpnprotocol.testutils.mocks.CreateWireguardTunnelMock
 import com.kape.vpnprotocol.testutils.mocks.GenerateWireguardKeyPairMock
 import com.kape.vpnprotocol.testutils.mocks.GenerateWireguardServerPeerInformationMock
 import com.kape.vpnprotocol.testutils.mocks.GenerateWireguardSettingsMock
+import com.kape.vpnprotocol.testutils.mocks.GetProtocolConfigurationMock
 import com.kape.vpnprotocol.testutils.mocks.GetServerPeerInformationMock
 import com.kape.vpnprotocol.testutils.mocks.IsNetworkAvailableMock
 import com.kape.vpnprotocol.testutils.mocks.PerformWireguardAddKeyRequestMock
@@ -548,6 +550,8 @@ internal class StartWireguardConnectionControllerTest {
             SetServerPeerInformationMock(shouldSucceed = true),
         getServerPeerInformationMock: IGetServerPeerInformation =
             GetServerPeerInformationMock(shouldSucceed = true),
+        getProtocolConfigurationMock: IGetProtocolConfiguration =
+            GetProtocolConfigurationMock(shouldSucceed = true),
         clearCacheMock: IClearCache =
             ClearCacheMock(shouldSucceed = true),
     ): IStartWireguardConnectionController =
@@ -569,6 +573,7 @@ internal class StartWireguardConnectionControllerTest {
             startWireguardByteCountJob = startWireguardByteCountJobMock,
             setServerPeerInformation = setServerPeerInformationMock,
             getServerPeerInformation = getServerPeerInformationMock,
+            getProtocolConfiguration = getProtocolConfigurationMock,
             clearCache = clearCacheMock
         )
     // endregion

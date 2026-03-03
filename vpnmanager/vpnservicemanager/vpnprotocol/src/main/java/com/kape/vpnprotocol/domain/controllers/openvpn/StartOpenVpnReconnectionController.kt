@@ -21,6 +21,8 @@
 package com.kape.vpnprotocol.domain.controllers.openvpn
 
 import com.kape.vpnmanager.api.VPNManagerConnectionStatus
+import com.kape.vpnmanager.api.data.model.VpnProtocol
+import com.kape.vpnprotocol.data.models.mapToApiModel
 import com.kape.vpnprotocol.domain.usecases.common.IGetProtocolConfiguration
 import com.kape.vpnprotocol.domain.usecases.common.IReportConnectivityStatus
 import com.kape.vpnprotocol.domain.usecases.common.ISetProtocolConfiguration
@@ -103,7 +105,13 @@ internal class StartOpenVpnReconnectionController(
                         .mapCatching { waitForOpenVpnProcessConnectedDeferrable().getOrThrow() }
 
                     if (connected.isSuccess) {
-                        reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Connected())
+                        reportConnectivityStatus(
+                            connectivityStatus = VPNManagerConnectionStatus.Connected(
+                                serverIp = server.ip,
+                                transportMode = server.transport.mapToApiModel(),
+                                vpnProtocol = VpnProtocol.OPENVPN
+                            )
+                        )
                         return@mapCatching
                     }
                 }

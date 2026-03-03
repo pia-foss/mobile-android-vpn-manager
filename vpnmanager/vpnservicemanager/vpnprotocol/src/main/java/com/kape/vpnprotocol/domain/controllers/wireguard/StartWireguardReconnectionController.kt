@@ -21,6 +21,7 @@
 package com.kape.vpnprotocol.domain.controllers.wireguard
 
 import com.kape.vpnmanager.api.VPNManagerConnectionStatus
+import com.kape.vpnprotocol.data.models.mapToApiModel
 import com.kape.vpnprotocol.domain.usecases.common.IGetProtocolConfiguration
 import com.kape.vpnprotocol.domain.usecases.common.IReportConnectivityStatus
 import com.kape.vpnprotocol.domain.usecases.common.ISetProtocolConfiguration
@@ -32,6 +33,7 @@ import com.kape.vpnprotocol.domain.usecases.wireguard.IPerformWireguardAddKeyReq
 import com.kape.vpnprotocol.domain.usecases.wireguard.IProtectWireguardTunnelSocket
 import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardAddKeyResponse
 import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardTunnelHandle
+import com.kape.vpnprotocol.presenters.mapToApiModel
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -100,6 +102,15 @@ internal class StartWireguardReconnectionController(
             .mapCatching { settings -> createWireguardTunnel(generatedSettings = settings).getOrThrow() }
             .mapCatching { newHandle -> setWireguardTunnelHandle(tunnelHandle = newHandle).getOrThrow() }
             .mapCatching { protectWireguardTunnelSocket().getOrThrow() }
-            .mapCatching { reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Connected()).getOrThrow() }
+            .mapCatching { getProtocolConfiguration().getOrThrow() }
+            .mapCatching {
+                reportConnectivityStatus(
+                    connectivityStatus = VPNManagerConnectionStatus.Connected(
+                        serverIp = it.wireguardClientConfiguration.server.ip,
+                        transportMode = it.wireguardClientConfiguration.server.transport.mapToApiModel(),
+                        vpnProtocol = it.protocolTarget.mapToApiModel()
+                    )
+                ).getOrThrow()
+            }
     // endregion
 }

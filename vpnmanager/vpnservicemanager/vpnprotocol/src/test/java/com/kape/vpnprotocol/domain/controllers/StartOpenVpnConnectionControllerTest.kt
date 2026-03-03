@@ -23,6 +23,7 @@ package com.kape.vpnprotocol.domain.controllers
 import com.kape.vpnprotocol.domain.controllers.openvpn.IStartOpenVpnConnectionController
 import com.kape.vpnprotocol.domain.controllers.openvpn.StartOpenVpnConnectionController
 import com.kape.vpnprotocol.domain.usecases.common.IClearCache
+import com.kape.vpnprotocol.domain.usecases.common.IGetProtocolConfiguration
 import com.kape.vpnprotocol.domain.usecases.common.IGetServerPeerInformation
 import com.kape.vpnprotocol.domain.usecases.common.IIsNetworkAvailable
 import com.kape.vpnprotocol.domain.usecases.common.IReportConnectivityStatus
@@ -46,6 +47,7 @@ import com.kape.vpnprotocol.testutils.mocks.CreateOpenVpnProcessConnectedDeferra
 import com.kape.vpnprotocol.testutils.mocks.FilterAdditionalOpenVpnParamsMock
 import com.kape.vpnprotocol.testutils.mocks.GenerateOpenVpnServerPeerInformationMock
 import com.kape.vpnprotocol.testutils.mocks.GenerateOpenVpnSettingsMock
+import com.kape.vpnprotocol.testutils.mocks.GetProtocolConfigurationMock
 import com.kape.vpnprotocol.testutils.mocks.GetServerPeerInformationMock
 import com.kape.vpnprotocol.testutils.mocks.IsNetworkAvailableMock
 import com.kape.vpnprotocol.testutils.mocks.ReportConnectivityStatusMock
@@ -541,6 +543,8 @@ internal class StartOpenVpnConnectionControllerTest {
             SetServerPeerInformationMock(shouldSucceed = true),
         getServerPeerInformationMock: IGetServerPeerInformation =
             GetServerPeerInformationMock(shouldSucceed = true),
+        getProtocolConfiguration: IGetProtocolConfiguration =
+            GetProtocolConfigurationMock(shouldSucceed = true),
         clearCacheMock: IClearCache =
             ClearCacheMock(shouldSucceed = true),
     ): IStartOpenVpnConnectionController = StartOpenVpnConnectionController(
@@ -560,6 +564,7 @@ internal class StartOpenVpnConnectionControllerTest {
         generateOpenVpnServerPeerInformation = generateOpenVpnServerPeerInformationMock,
         setServerPeerInformation = setServerPeerInformationMock,
         getServerPeerInformation = getServerPeerInformationMock,
+        getProtocolConfiguration = getProtocolConfiguration,
         clearCache = clearCacheMock
     )
     // endregion

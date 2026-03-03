@@ -31,7 +31,7 @@ data class ServerList(
      * @param ip `String`.
      * @param port `Int`.
      * @param commonOrDistinguishedName `String`.
-     * @param transport `TransportProtocol`.
+     * @param transport `TransportMode`.
      * @param ciphers `List<ProtocolCipher>`.
      * @param latency `Long?`.
      * @param dnsInformation `DnsInformation`.

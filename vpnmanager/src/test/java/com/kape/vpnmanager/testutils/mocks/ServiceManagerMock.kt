@@ -2,6 +2,7 @@ package com.kape.vpnmanager.testutils.mocks
 
 import com.kape.vpnmanager.api.DisconnectReason
 import com.kape.vpnmanager.data.externals.IServiceManager
+import com.kape.vpnmanager.data.models.ServerList
 import com.kape.vpnmanager.data.models.ServerPeerInformation
 import com.kape.vpnmanager.presenters.VPNManagerError
 import com.kape.vpnmanager.presenters.VPNManagerErrorCode
@@ -49,4 +50,7 @@ internal class ServiceManagerMock(
         protocolTarget: VPNManagerProtocolTarget,
     ): Result<List<String>> =
         Result.success(emptyList())
+
+    override suspend fun updateServerList(serverList: ServerList): Result<Unit> =
+        Result.success(Unit)
 }

@@ -1,5 +1,8 @@
 package com.kape.vpnprotocol.domain.usecases
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
+import com.kape.vpnprotocol.data.externals.wireguard.ICacheWireguard
 import com.kape.vpnprotocol.data.externals.wireguard.IWireguard
 import com.kape.vpnprotocol.domain.usecases.wireguard.DestroyWireguardTunnel
 import com.kape.vpnprotocol.domain.usecases.wireguard.IDestroyWireguardTunnel
@@ -9,6 +12,8 @@ import com.kape.wireguard.presenters.WireguardAPI
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -29,16 +34,19 @@ import org.junit.Test
  */
 
 @ExperimentalCoroutinesApi
+@RunWith(RobolectricTestRunner::class)
 internal class DestroyWireguardTunnelTest {
 
     @Test
     fun `should access the turn off wireguard module api when destroying the tunnel`() = runTest {
         // given
+        val context: Context = ApplicationProvider.getApplicationContext()
         val tunnelHandleMock = 1234
         val wireguardApiMock: WireguardAPI = WireguardApiMock()
         val wireguard: IWireguard = GivenExternal.wireguard(wireguardApi = wireguardApiMock)
+        val cacheWireguard: ICacheWireguard = GivenExternal.cache(context = context)
         val destroyWireguardTunnel: IDestroyWireguardTunnel =
-            DestroyWireguardTunnel(wireguard = wireguard)
+            DestroyWireguardTunnel(wireguard = wireguard, cacheWireguard = cacheWireguard)
 
         // when
         val result = destroyWireguardTunnel(tunnelHandle = tunnelHandleMock)

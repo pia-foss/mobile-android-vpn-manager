@@ -33,6 +33,8 @@ import com.kape.vpnprotocol.domain.usecases.wireguard.IPerformWireguardAddKeyReq
 import com.kape.vpnprotocol.domain.usecases.wireguard.IProtectWireguardTunnelSocket
 import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardAddKeyResponse
 import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardTunnelHandle
+import com.kape.vpnprotocol.domain.usecases.wireguard.IStartWireguardByteCountJob
+import com.kape.vpnprotocol.domain.usecases.wireguard.IStopWireguardByteCountJob
 import com.kape.vpnprotocol.presenters.mapToApiModel
 
 /*
@@ -59,14 +61,17 @@ internal class StartWireguardReconnectionController(
     private val setProtocolConfiguration: ISetProtocolConfiguration,
     private val getWireguardTunnelHandle: IGetWireguardTunnelHandle,
     private val destroyWireguardTunnel: IDestroyWireguardTunnel,
+    private val stopWireguardByteCountJob: IStopWireguardByteCountJob,
     private val performWireguardAddKeyRequest: IPerformWireguardAddKeyRequest,
     private val setWireguardAddKeyResponse: ISetWireguardAddKeyResponse,
     private val generateWireguardSettings: IGenerateWireguardSettings,
     private val createWireguardTunnel: ICreateWireguardTunnel,
     private val setWireguardTunnelHandle: ISetWireguardTunnelHandle,
     private val protectWireguardTunnelSocket: IProtectWireguardTunnelSocket,
+    private val startWireguardByteCountJob: IStartWireguardByteCountJob,
 ) : IStartWireguardReconnectionController {
 
+    // endregion
     // region IStartWireguardReconnectionController
     override suspend fun invoke(): Result<Unit> =
         reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Reconnecting)
@@ -90,8 +95,19 @@ internal class StartWireguardReconnectionController(
                     setProtocolConfiguration(protocolConfiguration = updatedConfig).getOrThrow()
                 }
             }
-            .mapCatching { getWireguardTunnelHandle().getOrThrow() }
-            .mapCatching { tunnelHandle -> destroyWireguardTunnel(tunnelHandle = tunnelHandle).getOrThrow() }
+            .mapCatching {
+                // Stop the byte count job before destroying the tunnel. Tolerate missing job
+                // (e.g. second reconnection attempt where job was already cleared).
+                stopWireguardByteCountJob().getOrNull()
+            }
+            .mapCatching {
+                // If a live tunnel exists destroy it so traffic goes directly and the add-key
+                // request can reach the server. If no handle is cached (already destroyed in a
+                // previous failed reconnection attempt), skip straight to the request.
+                getWireguardTunnelHandle().getOrNull()?.let { tunnelHandle ->
+                    destroyWireguardTunnel(tunnelHandle = tunnelHandle).getOrThrow()
+                }
+            }
             // With the tunnel destroyed traffic goes directly, so the add-key HTTP request can reach
             // the server. This also refreshes the server's WireGuard public key for the new config.
             .mapCatching { performWireguardAddKeyRequest().getOrThrow() }
@@ -102,6 +118,7 @@ internal class StartWireguardReconnectionController(
             .mapCatching { settings -> createWireguardTunnel(generatedSettings = settings).getOrThrow() }
             .mapCatching { newHandle -> setWireguardTunnelHandle(tunnelHandle = newHandle).getOrThrow() }
             .mapCatching { protectWireguardTunnelSocket().getOrThrow() }
+            .mapCatching { startWireguardByteCountJob().getOrThrow() }
             .mapCatching { getProtocolConfiguration().getOrThrow() }
             .mapCatching {
                 reportConnectivityStatus(
@@ -112,5 +129,4 @@ internal class StartWireguardReconnectionController(
                     )
                 ).getOrThrow()
             }
-    // endregion
 }

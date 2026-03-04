@@ -2,6 +2,7 @@ package com.kape.vpnmanager.presenters
 
 import com.kape.vpnmanager.api.VPNManagerConnectionStatus
 import com.kape.vpnmanager.data.models.ClientConfiguration
+import com.kape.vpnmanager.data.models.ServerList
 import com.kape.vpnmanager.data.models.ServerPeerInformation
 import com.kape.vpnmanager.data.models.TransportProtocol
 
@@ -83,6 +84,8 @@ public interface VPNManagerAPI {
         protocolTarget: VPNManagerProtocolTarget,
         callback: VPNManagerResultCallback<List<String>>,
     )
+
+    fun updateConfigurationServers(servers: ServerList, callback: VPNManagerCallback)
 }
 
 /**

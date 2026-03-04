@@ -273,7 +273,7 @@ internal object GivenController {
         getWireguardTunnelHandle: IGetWireguardTunnelHandle =
             GivenUsecase.getWireguardTunnelHandle(context = context),
         destroyWireguardTunnel: IDestroyWireguardTunnel =
-            GivenUsecase.destroyWireguardTunnel(),
+            GivenUsecase.destroyWireguardTunnel(context = context),
         performWireguardAddKeyRequest: IPerformWireguardAddKeyRequest =
             GivenUsecase.performWireguardAddKeyRequest(context = context),
         setWireguardAddKeyResponse: ISetWireguardAddKeyResponse =
@@ -286,6 +286,10 @@ internal object GivenController {
             GivenUsecase.setWireguardTunnelHandle(context = context),
         protectWireguardTunnelSocket: IProtectWireguardTunnelSocket =
             GivenUsecase.protectWireguardTunnelSocket(context = context),
+        stopWireguardByteCountJob: IStopWireguardByteCountJob =
+            GivenUsecase.stopWireguardByteCountJob(context = context),
+        startWireguardByteCountJob: IStartWireguardByteCountJob =
+            GivenUsecase.startWireguardByteCountJob(context = context),
     ): IStartWireguardReconnectionController =
         StartWireguardReconnectionController(
             reportConnectivityStatus = reportConnectivityStatus,
@@ -293,12 +297,14 @@ internal object GivenController {
             setProtocolConfiguration = setProtocolConfiguration,
             getWireguardTunnelHandle = getWireguardTunnelHandle,
             destroyWireguardTunnel = destroyWireguardTunnel,
+            stopWireguardByteCountJob = stopWireguardByteCountJob,
             performWireguardAddKeyRequest = performWireguardAddKeyRequest,
             setWireguardAddKeyResponse = setWireguardAddKeyResponse,
             generateWireguardSettings = generateWireguardSettings,
             createWireguardTunnel = createWireguardTunnel,
             setWireguardTunnelHandle = setWireguardTunnelHandle,
-            protectWireguardTunnelSocket = protectWireguardTunnelSocket
+            protectWireguardTunnelSocket = protectWireguardTunnelSocket,
+            startWireguardByteCountJob = startWireguardByteCountJob
         )
 
     fun stopConnectionController(
@@ -337,7 +343,7 @@ internal object GivenController {
         stopWireguardByteCountJob: IStopWireguardByteCountJob =
             GivenUsecase.stopWireguardByteCountJob(context = context),
         destroyWireguardTunnel: IDestroyWireguardTunnel =
-            GivenUsecase.destroyWireguardTunnel(),
+            GivenUsecase.destroyWireguardTunnel(context = context),
         clearCache: IClearCache =
             GivenUsecase.clearCache(context = context),
     ): IStopWireguardConnectionController =

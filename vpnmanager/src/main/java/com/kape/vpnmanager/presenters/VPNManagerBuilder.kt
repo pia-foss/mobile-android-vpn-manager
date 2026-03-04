@@ -21,8 +21,8 @@ import com.kape.vpnmanager.domain.controllers.IStartConnectionController
 import com.kape.vpnmanager.domain.controllers.StartConnectionController
 import com.kape.vpnmanager.domain.datasources.CacheDatasource
 import com.kape.vpnmanager.domain.datasources.ICacheDatasource
+import com.kape.vpnmanager.domain.usecases.GetServerList
 import com.kape.vpnmanager.usecases.AddConnectionListener
-import com.kape.vpnmanager.usecases.GetServerList
 import com.kape.vpnmanager.usecases.GetVpnProtocolLogs
 import com.kape.vpnmanager.usecases.GrantPermissions
 import com.kape.vpnmanager.usecases.IAddConnectionListener
@@ -32,12 +32,14 @@ import com.kape.vpnmanager.usecases.IGrantPermissions
 import com.kape.vpnmanager.usecases.IRemoveConnectionListener
 import com.kape.vpnmanager.usecases.ISetClientConfiguration
 import com.kape.vpnmanager.usecases.ISetServer
+import com.kape.vpnmanager.usecases.ISetServerList
 import com.kape.vpnmanager.usecases.IStartConnection
 import com.kape.vpnmanager.usecases.IStartIteratingConnection
 import com.kape.vpnmanager.usecases.IStopConnection
 import com.kape.vpnmanager.usecases.RemoveConnectionListener
 import com.kape.vpnmanager.usecases.SetClientConfiguration
 import com.kape.vpnmanager.usecases.SetServer
+import com.kape.vpnmanager.usecases.SetServerList
 import com.kape.vpnmanager.usecases.StartConnection
 import com.kape.vpnmanager.usecases.StartIteratingConnection
 import com.kape.vpnmanager.usecases.StopConnection
@@ -304,6 +306,10 @@ public class VPNManagerBuilder {
         val setServer: ISetServer = SetServer(
             cacheDatasource = cacheDatasource
         )
+        val setServerList: ISetServerList = SetServerList(
+            cacheDatasource = cacheDatasource,
+            serviceManager = serviceManager
+        )
         val startConnection: IStartConnection = StartConnection(
             serviceManager = serviceManager
         )
@@ -336,6 +342,7 @@ public class VPNManagerBuilder {
             getVpnProtocolLogs = getVpnProtocolLogs,
             addConnectionListener = addConnectionListener,
             removeConnectionListener = removeConnectionListener,
+            setServerList = setServerList,
             coroutineContext = coroutineContext
         )
     }
@@ -349,6 +356,7 @@ public class VPNManagerBuilder {
         getVpnProtocolLogs: IGetVpnProtocolLogs,
         addConnectionListener: IAddConnectionListener,
         removeConnectionListener: IRemoveConnectionListener,
+        setServerList: ISetServerList,
         coroutineContext: ICoroutineContext,
     ): VPNManagerAPI {
         val startConnectionController: IStartConnectionController = StartConnectionController(
@@ -364,6 +372,7 @@ public class VPNManagerBuilder {
             addConnectionListenerUseCase = addConnectionListener,
             removeConnectionListenerUseCase = removeConnectionListener,
             getVpnProtocolLogsUseCase = getVpnProtocolLogs,
+            setServerListUseCase = setServerList,
             coroutineContext = coroutineContext
         )
     }

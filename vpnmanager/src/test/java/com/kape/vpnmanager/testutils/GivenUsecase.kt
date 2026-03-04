@@ -7,8 +7,8 @@ import com.kape.vpnmanager.data.externals.IPermissions
 import com.kape.vpnmanager.data.externals.IServiceManager
 import com.kape.vpnmanager.data.externals.ITargetProvider
 import com.kape.vpnmanager.domain.datasources.ICacheDatasource
+import com.kape.vpnmanager.domain.usecases.GetServerList
 import com.kape.vpnmanager.usecases.AddConnectionListener
-import com.kape.vpnmanager.usecases.GetServerList
 import com.kape.vpnmanager.usecases.GrantPermissions
 import com.kape.vpnmanager.usecases.IAddConnectionListener
 import com.kape.vpnmanager.usecases.IGetServerList

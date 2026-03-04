@@ -56,6 +56,8 @@ internal interface ICacheDatasource : ICacheLoggingDatasource, ICacheConnectionL
      */
     fun setServer(server: ServerList.Server): Result<Unit>
 
+    fun setServerList(serverList: ServerList): Result<Unit>
+
     /**
      * @param clientConfiguration `ClientConfiguration`.
      *

@@ -82,6 +82,16 @@ public interface VPNProtocolAPI {
      * @param callback `VPNProtocolResultCallback<VPNProtocolServer>`.
      */
     fun getTargetServer(callback: VPNProtocolResultCallback<VPNProtocolServer>)
+
+    /**
+     * Updates the server list used by the reconnection controllers without restarting the
+     * active connection. The updated list is persisted in the protocol cache and will be
+     * picked up on the next reconnection attempt.
+     *
+     * @param servers `List<VPNProtocolServer>`.
+     * @param callback `VPNProtocolCallback`.
+     */
+    fun updateServerList(servers: List<VPNProtocolServer>, callback: VPNProtocolCallback)
 }
 
 /**

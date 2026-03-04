@@ -1,6 +1,7 @@
 package com.kape.vpnmanager.data.externals
 
 import com.kape.vpnmanager.api.DisconnectReason
+import com.kape.vpnmanager.data.models.ServerList
 import com.kape.vpnmanager.data.models.ServerPeerInformation
 import com.kape.vpnmanager.presenters.VPNManagerProtocolTarget
 
@@ -40,4 +41,11 @@ internal interface IServiceManager {
      * @return `Result<List<String>>`.
      */
     suspend fun getVpnProtocolLogs(protocolTarget: VPNManagerProtocolTarget): Result<List<String>>
+
+    /**
+     * @param serverList `ServerList`.
+     *
+     * @return `Result<Unit>`.
+     */
+    suspend fun updateServerList(serverList: ServerList): Result<Unit>
 }

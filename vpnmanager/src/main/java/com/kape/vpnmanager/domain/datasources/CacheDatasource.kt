@@ -65,6 +65,20 @@ internal class CacheDatasource(
                 )
             }
 
+    override fun setServerList(serverList: ServerList): Result<Unit> =
+        cache.getState().mapCatching { currentState ->
+            cache.setState(
+                State(
+                    configuration = currentState.configuration.copy(
+                        clientConfiguration = currentState.configuration.clientConfiguration?.copy(
+                            serverList = serverList
+                        )
+                    ),
+                    hasRequiredPermissionsGranted = currentState.hasRequiredPermissionsGranted
+                )
+            )
+        }
+
     override fun setClientConfiguration(
         clientConfiguration: ClientConfiguration,
     ): Result<Unit> =

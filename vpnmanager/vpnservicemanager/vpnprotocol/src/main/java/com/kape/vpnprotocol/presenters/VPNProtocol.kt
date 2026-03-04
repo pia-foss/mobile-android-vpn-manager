@@ -10,6 +10,7 @@ import com.kape.vpnprotocol.domain.controllers.common.IStartReconnectionControll
 import com.kape.vpnprotocol.domain.controllers.common.IStopConnectionController
 import com.kape.vpnprotocol.domain.usecases.common.IGetTargetServer
 import com.kape.vpnprotocol.domain.usecases.common.IGetVpnProtocolLogs
+import com.kape.vpnprotocol.domain.usecases.common.IUpdateServerList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -38,6 +39,7 @@ internal class VPNProtocol(
     private val stopConnectionController: IStopConnectionController,
     private val getVpnProtocolLogs: IGetVpnProtocolLogs,
     private val getTargetServer: IGetTargetServer,
+    private val updateServerListUseCase: IUpdateServerList,
     private val coroutineContext: ICoroutineContext,
 ) : VPNProtocolAPI {
 
@@ -105,6 +107,15 @@ internal class VPNProtocol(
     override fun getTargetServer(callback: VPNProtocolResultCallback<VPNProtocolServer>) {
         CoroutineScope(moduleCoroutineContext).launch {
             val result = getTargetServer()
+            launch(clientCoroutineContext) {
+                callback(result)
+            }
+        }
+    }
+
+    override fun updateServerList(servers: List<VPNProtocolServer>, callback: VPNProtocolCallback) {
+        CoroutineScope(moduleCoroutineContext).launch {
+            val result = updateServerListUseCase(servers = servers)
             launch(clientCoroutineContext) {
                 callback(result)
             }

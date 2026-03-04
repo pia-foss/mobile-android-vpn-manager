@@ -3,10 +3,12 @@ package com.kape.vpnservicemanager.presenters
 import com.kape.vpnmanager.api.DisconnectReason
 import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnservicemanager.data.models.VPNServiceManagerConfiguration
+import com.kape.vpnservicemanager.data.models.VPNServiceServer
 import com.kape.vpnservicemanager.data.models.VPNServiceServerPeerInformation
 import com.kape.vpnservicemanager.domain.controllers.IStartConnectionController
 import com.kape.vpnservicemanager.domain.controllers.IStopConnectionController
 import com.kape.vpnservicemanager.domain.usecases.IGetVpnProtocolLogs
+import com.kape.vpnservicemanager.domain.usecases.IUpdateServerList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -33,6 +35,7 @@ internal class VPNServiceManager(
     private val startConnectionController: IStartConnectionController,
     private val stopConnectionController: IStopConnectionController,
     private val getVpnProtocolLogsUseCase: IGetVpnProtocolLogs,
+    private val updateServerListUseCase: IUpdateServerList,
     private val coroutineContext: ICoroutineContext,
 ) : VPNServiceManagerAPI {
 
@@ -69,6 +72,15 @@ internal class VPNServiceManager(
     ) {
         CoroutineScope(moduleCoroutineContext).launch {
             val result = getVpnProtocolLogsUseCase(protocolTarget = protocolTarget)
+            launch(clientCoroutineContext) {
+                callback(result)
+            }
+        }
+    }
+
+    override fun updateServerList(servers: List<VPNServiceServer>, callback: VPNServiceManagerCallback) {
+        CoroutineScope(moduleCoroutineContext).launch {
+            val result = updateServerListUseCase(servers = servers)
             launch(clientCoroutineContext) {
                 callback(result)
             }

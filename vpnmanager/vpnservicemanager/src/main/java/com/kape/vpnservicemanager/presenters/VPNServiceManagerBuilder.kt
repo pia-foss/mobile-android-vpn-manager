@@ -38,6 +38,7 @@ import com.kape.vpnservicemanager.domain.usecases.ISetServerPeerInformation
 import com.kape.vpnservicemanager.domain.usecases.IStartConnection
 import com.kape.vpnservicemanager.domain.usecases.IStartReconnectionHandler
 import com.kape.vpnservicemanager.domain.usecases.IStopConnection
+import com.kape.vpnservicemanager.domain.usecases.IUpdateServerList
 import com.kape.vpnservicemanager.domain.usecases.IsServiceCleared
 import com.kape.vpnservicemanager.domain.usecases.IsServicePresent
 import com.kape.vpnservicemanager.domain.usecases.SetProtocolConfiguration
@@ -45,6 +46,7 @@ import com.kape.vpnservicemanager.domain.usecases.SetServerPeerInformation
 import com.kape.vpnservicemanager.domain.usecases.StartConnection
 import com.kape.vpnservicemanager.domain.usecases.StartReconnectionHandler
 import com.kape.vpnservicemanager.domain.usecases.StopConnection
+import com.kape.vpnservicemanager.domain.usecases.UpdateServerList
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -256,6 +258,9 @@ public class VPNServiceManagerBuilder {
         val clearCache: IClearCache = ClearCache(
             cache = cache
         )
+        val updateServerList: IUpdateServerList = UpdateServerList(
+            protocol = protocol
+        )
         val isServiceCleared: IIsServiceCleared = IsServiceCleared(
             cacheService = cache
         )
@@ -274,6 +279,7 @@ public class VPNServiceManagerBuilder {
             startReconnectionHandler = startReconnectionHandler,
             stopConnection = stopConnection,
             getVpnProtocolLogs = getVpnProtocolLogs,
+            updateServerList = updateServerList,
             coroutineContext = coroutineContext
         )
     }
@@ -288,6 +294,7 @@ public class VPNServiceManagerBuilder {
         getServerPeerInformation: IGetServerPeerInformation,
         stopConnection: IStopConnection,
         getVpnProtocolLogs: IGetVpnProtocolLogs,
+        updateServerList: IUpdateServerList,
         clearCache: IClearCache,
         coroutineContext: ICoroutineContext,
     ): VPNServiceManagerAPI {
@@ -311,6 +318,7 @@ public class VPNServiceManagerBuilder {
             startConnectionController = startConnectionController,
             stopConnectionController = stopConnectionController,
             getVpnProtocolLogsUseCase = getVpnProtocolLogs,
+            updateServerListUseCase = updateServerList,
             coroutineContext = coroutineContext
         )
     }

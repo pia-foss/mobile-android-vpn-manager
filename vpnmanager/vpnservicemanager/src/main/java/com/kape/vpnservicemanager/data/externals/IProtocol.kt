@@ -64,4 +64,11 @@ internal interface IProtocol {
      * @return `Result<VPNServiceServer>`.
      */
     suspend fun getTargetServer(): Result<VPNServiceServer>
+
+    /**
+     * @param servers `List<VPNServiceServer>`.
+     *
+     * @return `Result<Unit>`.
+     */
+    suspend fun updateServerList(servers: List<VPNServiceServer>): Result<Unit>
 }

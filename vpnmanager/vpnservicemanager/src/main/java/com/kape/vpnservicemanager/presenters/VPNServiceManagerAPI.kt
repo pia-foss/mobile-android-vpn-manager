@@ -2,6 +2,7 @@ package com.kape.vpnservicemanager.presenters
 
 import com.kape.vpnmanager.api.DisconnectReason
 import com.kape.vpnservicemanager.data.models.VPNServiceManagerConfiguration
+import com.kape.vpnservicemanager.data.models.VPNServiceServer
 import com.kape.vpnservicemanager.data.models.VPNServiceServerPeerInformation
 
 /*
@@ -56,6 +57,16 @@ public interface VPNServiceManagerAPI {
         protocolTarget: VPNServiceManagerProtocolTarget,
         callback: VPNServiceManagerResultCallback<List<String>>,
     )
+
+    /**
+     * Updates the server list in the protocol caches without restarting the active connection.
+     * The updated list will be used by reconnection controllers on the next reconnect attempt.
+     * Callback invoked on the CoroutineContext set on the VPNManagerBuilder.
+     *
+     * @param servers `List<VPNServiceServer>`.
+     * @param callback `VPNServiceManagerCallback`.
+     */
+    fun updateServerList(servers: List<VPNServiceServer>, callback: VPNServiceManagerCallback)
 }
 
 /**

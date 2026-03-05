@@ -1,7 +1,7 @@
-package com.kape.vpnprotocol.domain.usecases.wireguard
+package com.kape.vpnservicemanager.domain.usecases
 
-import com.kape.vpnprotocol.data.externals.wireguard.ICacheWireguard
-import com.kape.vpnprotocol.data.externals.wireguard.IWireguard
+import com.kape.vpnservicemanager.data.externals.IProtocol
+import com.kape.vpnservicemanager.data.models.VPNServiceServer
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -21,15 +21,12 @@ import com.kape.vpnprotocol.data.externals.wireguard.IWireguard
  *  Internet Access Android Client.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-internal class DestroyWireguardTunnel(
-    private val wireguard: IWireguard,
-    private val cacheWireguard: ICacheWireguard,
-) : IDestroyWireguardTunnel {
+internal class UpdateServerList(
+    private val protocol: IProtocol,
+) : IUpdateServerList {
 
-    // region IDestroyWireguardTunnel
-    override suspend fun invoke(tunnelHandle: Int): Result<Unit> =
-        wireguard.turnOff(tunnelHandle = tunnelHandle)
-            .mapCatching { cacheWireguard.clearWireguardTunnelHandle().getOrThrow() }
-
+    // region IUpdateServerList
+    override suspend fun invoke(servers: List<VPNServiceServer>): Result<Unit> =
+        protocol.updateServerList(servers = servers)
     // endregion
 }

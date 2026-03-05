@@ -4,6 +4,7 @@ import com.kape.vpnmanager.api.DisconnectReason
 import com.kape.vpnmanager.data.models.Configuration
 import com.kape.vpnmanager.data.models.DnsInformation
 import com.kape.vpnmanager.data.models.ProtocolCipher
+import com.kape.vpnmanager.data.models.ServerList
 import com.kape.vpnmanager.data.models.ServerPeerInformation
 import com.kape.vpnmanager.data.models.TransportProtocol
 import com.kape.vpnmanager.presenters.VPNManagerError
@@ -73,6 +74,23 @@ internal class ServiceManager(
         val adaptedProtocolTarget = adaptProtocolTarget(protocolTarget = protocolTarget).getOrThrow()
         val deferred: CompletableDeferred<Result<List<String>>> = CompletableDeferred()
         serviceManagerApi.getVpnProtocolLogs(protocolTarget = adaptedProtocolTarget) {
+            deferred.complete(it)
+        }
+        return deferred.await()
+    }
+
+    override suspend fun updateServerList(serverList: ServerList): Result<Unit> {
+        val servers = serverList.servers.map { server ->
+            VPNServiceServer(
+                ip = server.ip,
+                port = server.port,
+                commonOrDistinguishedName = server.commonOrDistinguishedName,
+                transport = adaptTransportProtocol(transport = server.transport),
+                ciphers = adaptProtocolCiphers(ciphers = server.ciphers)
+            )
+        }
+        val deferred: CompletableDeferred<Result<Unit>> = CompletableDeferred()
+        serviceManagerApi.updateServerList(servers = servers) {
             deferred.complete(it)
         }
         return deferred.await()

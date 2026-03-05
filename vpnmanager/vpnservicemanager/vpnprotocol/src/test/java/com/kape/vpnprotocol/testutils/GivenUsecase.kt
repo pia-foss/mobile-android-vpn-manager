@@ -312,11 +312,15 @@ internal object GivenUsecase {
         )
 
     fun destroyWireguardTunnel(
+        context: Context,
         wireguard: IWireguard =
             GivenExternal.wireguard(),
+        cacheWireguard: ICacheWireguard =
+            GivenExternal.cache(context = context),
     ): IDestroyWireguardTunnel =
         DestroyWireguardTunnel(
-            wireguard = wireguard
+            wireguard = wireguard,
+            cacheWireguard = cacheWireguard
         )
 
     fun generateWireguardKeyPair(

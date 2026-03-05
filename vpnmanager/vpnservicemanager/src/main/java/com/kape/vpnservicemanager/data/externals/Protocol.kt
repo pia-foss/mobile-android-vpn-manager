@@ -119,6 +119,32 @@ internal class Protocol(
         }
         return deferred.await()
     }
+
+    override suspend fun updateServerList(servers: List<VPNServiceServer>): Result<Unit> {
+        // Keep vpnservicemanager cache consistent so that a subsequent startConnection
+        // will also use the updated list.
+        cache.getProtocolConfiguration().mapCatching { config ->
+            cache.setProtocolConfiguration(
+                config.copy(
+                    openVpnClientConfiguration = config.openVpnClientConfiguration.copy(
+                        servers = servers
+                    ),
+                    wireguardClientConfiguration = config.wireguardClientConfiguration.copy(
+                        servers = servers
+                    )
+                )
+            ).getOrThrow()
+        }.getOrElse { return Result.failure(it) }
+
+        val adaptedServers = adaptServers(servers = servers).getOrElse {
+            return Result.failure(it)
+        }
+        val deferred: CompletableDeferred<Result<Unit>> = CompletableDeferred()
+        vpnProtocolApi.updateServerList(servers = adaptedServers) { result ->
+            deferred.complete(result)
+        }
+        return deferred.await()
+    }
     // endregion
 
     // region private

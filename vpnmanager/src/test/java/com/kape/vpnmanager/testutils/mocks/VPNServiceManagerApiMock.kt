@@ -3,6 +3,7 @@ package com.kape.vpnmanager.testutils.mocks
 import com.kape.vpnmanager.api.DisconnectReason
 import com.kape.vpnmanager.testutils.GivenModel
 import com.kape.vpnservicemanager.data.models.VPNServiceManagerConfiguration
+import com.kape.vpnservicemanager.data.models.VPNServiceServer
 import com.kape.vpnservicemanager.data.models.VPNServiceServerPeerInformation
 import com.kape.vpnservicemanager.presenters.VPNServiceManagerAPI
 import com.kape.vpnservicemanager.presenters.VPNServiceManagerCallback
@@ -47,5 +48,12 @@ internal class VPNServiceManagerApiMock(
         callback: VPNServiceManagerResultCallback<List<String>>,
     ) {
         callback(Result.success(emptyList()))
+    }
+
+    override fun updateServerList(
+        servers: List<VPNServiceServer>,
+        callback: VPNServiceManagerCallback,
+    ) {
+        callback(Result.success(Unit))
     }
 }

@@ -1,7 +1,8 @@
-package com.kape.vpnprotocol.domain.usecases.wireguard
+package com.kape.vpnmanager.usecases
 
-import com.kape.vpnprotocol.data.externals.wireguard.ICacheWireguard
-import com.kape.vpnprotocol.data.externals.wireguard.IWireguard
+import com.kape.vpnmanager.data.externals.IServiceManager
+import com.kape.vpnmanager.data.models.ServerList
+import com.kape.vpnmanager.domain.datasources.ICacheDatasource
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -21,15 +22,18 @@ import com.kape.vpnprotocol.data.externals.wireguard.IWireguard
  *  Internet Access Android Client.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-internal class DestroyWireguardTunnel(
-    private val wireguard: IWireguard,
-    private val cacheWireguard: ICacheWireguard,
-) : IDestroyWireguardTunnel {
+internal class SetServerList(
+    private val cacheDatasource: ICacheDatasource,
+    private val serviceManager: IServiceManager,
+) : ISetServerList {
 
-    // region IDestroyWireguardTunnel
-    override suspend fun invoke(tunnelHandle: Int): Result<Unit> =
-        wireguard.turnOff(tunnelHandle = tunnelHandle)
-            .mapCatching { cacheWireguard.clearWireguardTunnelHandle().getOrThrow() }
-
+    // region ISetServerList
+    override suspend fun invoke(serverList: ServerList): Result<Unit> {
+        val result = cacheDatasource.setServerList(serverList)
+        // Best-effort: propagate to vpnservicemanager/vpnprotocol caches so reconnection
+        // controllers pick up the new list. This may fail silently when no connection is active.
+        serviceManager.updateServerList(serverList = serverList)
+        return result
+    }
     // endregion
 }

@@ -1,10 +1,7 @@
-package com.kape.vpnmanager.domain.usecases
+package com.kape.vpnprotocol.domain.usecases.common
 
-import com.kape.vpnmanager.data.models.ServerList
-import com.kape.vpnmanager.domain.datasources.ICacheDatasource
-import com.kape.vpnmanager.presenters.VPNManagerError
-import com.kape.vpnmanager.presenters.VPNManagerErrorCode
-import com.kape.vpnmanager.usecases.IGetServerList
+import com.kape.vpnprotocol.data.externals.common.ICacheProtocol
+import com.kape.vpnprotocol.data.models.VPNProtocolServer
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -24,15 +21,23 @@ import com.kape.vpnmanager.usecases.IGetServerList
  *  Internet Access Android Client.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-internal class GetServerList(
-    private val cacheDatasource: ICacheDatasource,
-) : IGetServerList {
+internal class UpdateServerList(
+    private val cacheProtocol: ICacheProtocol,
+) : IUpdateServerList {
 
-    // region IGetServerList
-    override suspend fun invoke(): Result<ServerList> =
-        cacheDatasource.getState().mapCatching {
-            it.configuration.clientConfiguration?.serverList
-                ?: throw VPNManagerError(code = VPNManagerErrorCode.FAILED_SERVER_SELECTION)
+    // region IUpdateServerList
+    override suspend fun invoke(servers: List<VPNProtocolServer>): Result<Unit> =
+        cacheProtocol.getProtocolConfiguration().mapCatching { config ->
+            cacheProtocol.setProtocolConfiguration(
+                config.copy(
+                    openVpnClientConfiguration = config.openVpnClientConfiguration.copy(
+                        servers = servers
+                    ),
+                    wireguardClientConfiguration = config.wireguardClientConfiguration.copy(
+                        servers = servers
+                    )
+                )
+            ).getOrThrow()
         }
     // endregion
 }

@@ -13,6 +13,8 @@ import com.kape.vpnprotocol.domain.usecases.wireguard.IPerformWireguardAddKeyReq
 import com.kape.vpnprotocol.domain.usecases.wireguard.IProtectWireguardTunnelSocket
 import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardAddKeyResponse
 import com.kape.vpnprotocol.domain.usecases.wireguard.ISetWireguardTunnelHandle
+import com.kape.vpnprotocol.domain.usecases.wireguard.IStartWireguardByteCountJob
+import com.kape.vpnprotocol.domain.usecases.wireguard.IStopWireguardByteCountJob
 import com.kape.vpnprotocol.testutils.mocks.CreateWireguardTunnelMock
 import com.kape.vpnprotocol.testutils.mocks.DestroyWireguardTunnelMock
 import com.kape.vpnprotocol.testutils.mocks.GenerateWireguardSettingsMock
@@ -24,6 +26,8 @@ import com.kape.vpnprotocol.testutils.mocks.ReportConnectivityStatusMock
 import com.kape.vpnprotocol.testutils.mocks.SetProtocolConfigurationMock
 import com.kape.vpnprotocol.testutils.mocks.SetWireguardAddKeyResponseMock
 import com.kape.vpnprotocol.testutils.mocks.SetWireguardTunnelHandleMock
+import com.kape.vpnprotocol.testutils.mocks.StartWireguardByteCountJobMock
+import com.kape.vpnprotocol.testutils.mocks.StopWireguardByteCountJobMock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -97,7 +101,7 @@ internal class StartWireguardReconnectionControllerTest {
     }
 
     @Test
-    fun `should fail if getting the wireguard tunnel handle failed`() = runTest {
+    fun `should succeed if getting the wireguard tunnel handle failed (failure is tolerated)`() = runTest {
         // given
         val getWireguardTunnelHandleMock: IGetWireguardTunnelHandle =
             GetWireguardTunnelHandleMock(shouldSucceed = false)
@@ -110,7 +114,7 @@ internal class StartWireguardReconnectionControllerTest {
         val result = startWireguardReconnectionController()
 
         // then
-        assert(result.isFailure)
+        assert(result.isSuccess)
     }
 
     @Test
@@ -256,6 +260,10 @@ internal class StartWireguardReconnectionControllerTest {
             SetWireguardTunnelHandleMock(shouldSucceed = true),
         protectWireguardTunnelSocketMock: IProtectWireguardTunnelSocket =
             ProtectWireguardTunnelSocketMock(shouldSucceed = true),
+        stopWireguardByteCountJobMock: IStopWireguardByteCountJob =
+            StopWireguardByteCountJobMock(shouldSucceed = true),
+        startWireguardByteCountJobMock: IStartWireguardByteCountJob =
+            StartWireguardByteCountJobMock(shouldSucceed = true),
     ): IStartWireguardReconnectionController =
         StartWireguardReconnectionController(
             reportConnectivityStatus = reportConnectivityStatusMock,
@@ -263,12 +271,14 @@ internal class StartWireguardReconnectionControllerTest {
             setProtocolConfiguration = setProtocolConfigurationMock,
             getWireguardTunnelHandle = getWireguardTunnelHandleMock,
             destroyWireguardTunnel = destroyWireguardTunnelMock,
+            stopWireguardByteCountJob = stopWireguardByteCountJobMock,
             performWireguardAddKeyRequest = performWireguardAddKeyRequestMock,
             setWireguardAddKeyResponse = setWireguardAddKeyResponseMock,
             generateWireguardSettings = generateWireguardSettingsMock,
             createWireguardTunnel = createWireguardTunnelMock,
             setWireguardTunnelHandle = setWireguardTunnelHandleMock,
-            protectWireguardTunnelSocket = protectWireguardTunnelSocketMock
+            protectWireguardTunnelSocket = protectWireguardTunnelSocketMock,
+            startWireguardByteCountJob = startWireguardByteCountJobMock
         )
     // endregion
 }

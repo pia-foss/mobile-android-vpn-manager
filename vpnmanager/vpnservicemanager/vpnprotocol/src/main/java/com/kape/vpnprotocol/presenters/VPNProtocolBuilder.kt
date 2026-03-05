@@ -63,12 +63,14 @@ import com.kape.vpnprotocol.domain.usecases.common.ISetProtocolConfiguration
 import com.kape.vpnprotocol.domain.usecases.common.ISetServerPeerInformation
 import com.kape.vpnprotocol.domain.usecases.common.ISetServiceFileDescriptor
 import com.kape.vpnprotocol.domain.usecases.common.ISetVpnService
+import com.kape.vpnprotocol.domain.usecases.common.IUpdateServerList
 import com.kape.vpnprotocol.domain.usecases.common.IsNetworkAvailable
 import com.kape.vpnprotocol.domain.usecases.common.ReportConnectivityStatus
 import com.kape.vpnprotocol.domain.usecases.common.SetProtocolConfiguration
 import com.kape.vpnprotocol.domain.usecases.common.SetServerPeerInformation
 import com.kape.vpnprotocol.domain.usecases.common.SetServiceFileDescriptor
 import com.kape.vpnprotocol.domain.usecases.common.SetVpnService
+import com.kape.vpnprotocol.domain.usecases.common.UpdateServerList
 import com.kape.vpnprotocol.domain.usecases.openvpn.CreateOpenVpnCertificateFile
 import com.kape.vpnprotocol.domain.usecases.openvpn.CreateOpenVpnProcessConnectedDeferrable
 import com.kape.vpnprotocol.domain.usecases.openvpn.FilterAdditionalOpenVpnParams
@@ -328,7 +330,8 @@ public class VPNProtocolBuilder {
             wireguard = wireguard
         )
         val destroyWireguardTunnel: IDestroyWireguardTunnel = DestroyWireguardTunnel(
-            wireguard = wireguard
+            wireguard = wireguard,
+            cacheWireguard = cache
         )
         val setWireguardTunnelHandle: ISetWireguardTunnelHandle = SetWireguardTunnelHandle(
             cacheWireguard = cache
@@ -425,6 +428,9 @@ public class VPNProtocolBuilder {
         val getTargetServer: IGetTargetServer = GetTargetServer(
             cacheProtocol = cache
         )
+        val updateServerList: IUpdateServerList = UpdateServerList(
+            cacheProtocol = cache
+        )
         return initializeControllers(
             reportConnectivityStatus = reportConnectivityStatus,
             isNetworkAvailable = isNetworkAvailable,
@@ -460,6 +466,7 @@ public class VPNProtocolBuilder {
             getServerPeerInformation = getServerPeerInformation,
             getVpnProtocolLogs = getVpnProtocolLogs,
             getTargetServer = getTargetServer,
+            updateServerList = updateServerList,
             clearCache = clearCache,
             coroutineContext = coroutineContext
         )
@@ -500,6 +507,7 @@ public class VPNProtocolBuilder {
         getServerPeerInformation: IGetServerPeerInformation,
         getVpnProtocolLogs: IGetVpnProtocolLogs,
         getTargetServer: IGetTargetServer,
+        updateServerList: IUpdateServerList,
         clearCache: IClearCache,
         coroutineContext: ICoroutineContext,
     ): VPNProtocolAPI {
@@ -532,12 +540,14 @@ public class VPNProtocolBuilder {
                 setProtocolConfiguration = setProtocolConfiguration,
                 getWireguardTunnelHandle = getWireguardTunnelHandle,
                 destroyWireguardTunnel = destroyWireguardTunnel,
+                stopWireguardByteCountJob = stopWireguardByteCountJob,
                 performWireguardAddKeyRequest = performWireguardAddKeyRequest,
                 setWireguardAddKeyResponse = setWireguardAddKeyResponse,
                 generateWireguardSettings = generateWireguardSettings,
                 createWireguardTunnel = createWireguardTunnel,
                 setWireguardTunnelHandle = setWireguardTunnelHandle,
-                protectWireguardTunnelSocket = protectWireguardTunnelSocket
+                protectWireguardTunnelSocket = protectWireguardTunnelSocket,
+                startWireguardByteCountJob = startWireguardByteCountJob
             )
         val stopWireguardConnectionController: IStopWireguardConnectionController =
             StopWireguardConnectionController(
@@ -607,6 +617,7 @@ public class VPNProtocolBuilder {
             stopConnectionController = stopConnectionController,
             getVpnProtocolLogs = getVpnProtocolLogs,
             getTargetServer = getTargetServer,
+            updateServerListUseCase = updateServerList,
             coroutineContext = coroutineContext
         )
     }

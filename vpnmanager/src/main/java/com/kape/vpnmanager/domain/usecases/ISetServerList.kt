@@ -1,7 +1,6 @@
-package com.kape.vpnprotocol.domain.usecases.wireguard
+package com.kape.vpnmanager.usecases
 
-import com.kape.vpnprotocol.data.externals.wireguard.ICacheWireguard
-import com.kape.vpnprotocol.data.externals.wireguard.IWireguard
+import com.kape.vpnmanager.data.models.ServerList
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -21,15 +20,6 @@ import com.kape.vpnprotocol.data.externals.wireguard.IWireguard
  *  Internet Access Android Client.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-internal class DestroyWireguardTunnel(
-    private val wireguard: IWireguard,
-    private val cacheWireguard: ICacheWireguard,
-) : IDestroyWireguardTunnel {
-
-    // region IDestroyWireguardTunnel
-    override suspend fun invoke(tunnelHandle: Int): Result<Unit> =
-        wireguard.turnOff(tunnelHandle = tunnelHandle)
-            .mapCatching { cacheWireguard.clearWireguardTunnelHandle().getOrThrow() }
-
-    // endregion
+internal interface ISetServerList {
+    suspend operator fun invoke(serverList: ServerList): Result<Unit>
 }

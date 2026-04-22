@@ -49,14 +49,22 @@ internal class ServiceGateway(
         val deferred: CompletableDeferred<Result<VPNServiceServerPeerInformation>> = CompletableDeferred()
         serviceConnection.setServiceConnectionTimeout(serviceConnectionDeferredTimeout = deferred)
         context.bindService(intent, serviceConnection, BIND_AUTO_CREATE)
-        return withTimeoutOrNull(timeMillis = START_SERVICE_TIMEOUT_MS) {
-            deferred.await()
-        } ?: Result.failure(
-            VPNServiceManagerError(
-                code = VPNServiceManagerErrorCode.SERVICE_CONNECTION_TIMED_OUT,
-                error = Error("Service binding timed out")
+        try {
+            return withTimeoutOrNull(timeMillis = START_SERVICE_TIMEOUT_MS) {
+                deferred.await()
+            } ?: Result.failure(
+                VPNServiceManagerError(
+                    code = VPNServiceManagerErrorCode.SERVICE_CONNECTION_TIMED_OUT,
+                    error = Error("Service binding timed out")
+                )
             )
-        )
+        } finally {
+            // Runs on cancellation OR timeout, unbinding the service to prevent leaks
+            if (!deferred.isCompleted) {
+                deferred.cancel()
+                context.unbindService(serviceConnection)
+            }
+        }
     }
 
     override suspend fun stopService(disconnectReason: DisconnectReason): Result<Unit> {

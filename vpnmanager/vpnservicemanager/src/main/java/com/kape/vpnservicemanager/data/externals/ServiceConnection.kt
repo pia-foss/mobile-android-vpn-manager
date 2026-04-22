@@ -37,9 +37,10 @@ internal class ServiceConnection(
     private val coroutineContext: ICoroutineContext,
 ) : IServiceConnection {
 
-    private lateinit var serviceConnectionDeferredTimeout: CompletableDeferred<Result<VPNServiceServerPeerInformation>>
+    private var serviceConnectionDeferredTimeout: CompletableDeferred<Result<VPNServiceServerPeerInformation>>? = null
     private val moduleCoroutineContext: CoroutineContext =
         coroutineContext.getModuleCoroutineContext().getOrThrow()
+    private val serviceScope = CoroutineScope(moduleCoroutineContext)
 
     // region IServiceConnection
     override suspend fun setServiceConnectionTimeout(
@@ -61,29 +62,28 @@ internal class ServiceConnection(
 
     override fun onServiceConnected(className: ComponentName, service: IBinder) {
         cache.setServiceBound()
-        val scope = CoroutineScope(moduleCoroutineContext)
-        scope.launch {
+        serviceScope.launch {
+            val deferred = serviceConnectionDeferredTimeout ?: return@launch
+
             val binder = service as Service.ServiceBinder
-            serviceConnectionDeferredTimeout.complete(
-                cache.setService(binder.getService())
-                    .mapCatching {
-                        cache.getService().getOrThrow()
-                    }
-                    .mapCatching {
-                        it.bootstrap(
-                            protocol = protocol,
-                            subnet = subnet,
-                            cache = cache,
-                            onServiceRevoked = ::onServiceRevoked
-                        ).getOrThrow()
-                        it.startConnection().getOrThrow()
-                    }
-            )
+            val result = cache.setService(binder.getService())
+                .mapCatching { _ ->
+                    val vpnService = cache.getService().getOrThrow()
+                    vpnService.bootstrap(
+                        protocol = protocol,
+                        subnet = subnet,
+                        cache = cache,
+                        onServiceRevoked = ::onServiceRevoked
+                    ).getOrThrow()
+                    vpnService.startConnection().getOrThrow()
+                }
+
+            deferred.complete(result)
         }
     }
 
     private fun onServiceRevoked() {
-        CoroutineScope(moduleCoroutineContext).launch {
+        serviceScope.launch {
             cache.getService()
                 .mapCatching {
                     stopConnection(DisconnectReason.CONFIGURATION_ERROR).getOrThrow()

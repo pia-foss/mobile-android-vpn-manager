@@ -59,10 +59,17 @@ internal class ServiceGateway(
                 )
             )
         } finally {
-            // Runs on cancellation OR timeout, unbinding the service to prevent leaks
             if (!deferred.isCompleted) {
-                deferred.cancel()
+                deferred.complete(
+                    Result.failure(
+                        VPNServiceManagerError(
+                            code = VPNServiceManagerErrorCode.SERVICE_CONNECTION_TIMED_OUT,
+                            error = Error("Service connection was cancelled")
+                        )
+                    )
+                )
                 context.unbindService(serviceConnection)
+                serviceConnection.clearState()
             }
         }
     }

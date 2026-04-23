@@ -8,6 +8,7 @@ import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnservicemanager.data.models.VPNServiceServerPeerInformation
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
@@ -114,4 +115,10 @@ internal class ServiceConnection(
         // when the Service is next running.
     }
     // endregion
+
+    override fun clearState() {
+        serviceScope.coroutineContext.cancelChildren()
+        cache.clearServiceBound()
+        cache.clearService()
+    }
 }

@@ -42,4 +42,6 @@ internal interface IServiceConnection : android.content.ServiceConnection {
      * @return `Result<Unit>`.
      */
     suspend fun stopProtocolConnection(disconnectReason: DisconnectReason): Result<Unit>
+
+    fun clearState()
 }

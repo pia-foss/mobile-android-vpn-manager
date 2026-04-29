@@ -56,12 +56,11 @@ internal class StopOpenVpnConnectionController(
         // the StartConnectionController failure path before the OpenVPN process was ever
         // started. Regardless of cleanup outcome we must still report the canonical
         // Disconnecting -> Disconnected sequence so clients always see a terminal state.
-        val cleanupResult = reportConnectivityStatus(
+        val result = reportConnectivityStatus(
             connectivityStatus = VPNManagerConnectionStatus.Disconnecting
-        )
-            .mapCatching {
-                stopOpenVpnProcess().getOrThrow()
-            }
+        ).mapCatching {
+            stopOpenVpnProcess().getOrThrow()
+        }
 
         // Always emit Disconnected, even if the cleanup chain failed.
         reportConnectivityStatus(
@@ -72,7 +71,7 @@ internal class StopOpenVpnConnectionController(
         // the result; if cleanup already failed, propagate the original cleanup failure
         // and ignore any clearCache() error (best-effort).
         val clearResult = clearCache()
-        return cleanupResult.fold(
+        return result.fold(
             onSuccess = { clearResult },
             onFailure = { Result.failure(it) }
         )

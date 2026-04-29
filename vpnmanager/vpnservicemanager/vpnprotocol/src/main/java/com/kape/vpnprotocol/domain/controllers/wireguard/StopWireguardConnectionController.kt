@@ -62,18 +62,15 @@ internal class StopWireguardConnectionController(
         // up). We must still report the canonical Disconnecting -> Disconnected sequence
         // regardless of cleanup outcome so clients observing
         // handleConnectionStatusChange(...) always see a terminal state.
-        val cleanupResult = reportConnectivityStatus(
+        val result = reportConnectivityStatus(
             connectivityStatus = VPNManagerConnectionStatus.Disconnecting
-        )
-            .mapCatching {
-                stopWireguardByteCountJob().getOrThrow()
-            }
-            .mapCatching {
-                getWireguardTunnelHandle().getOrThrow()
-            }
-            .mapCatching {
-                destroyWireguardTunnel(tunnelHandle = it).getOrThrow()
-            }
+        ).mapCatching {
+            stopWireguardByteCountJob().getOrThrow()
+        }.mapCatching {
+            getWireguardTunnelHandle().getOrThrow()
+        }.mapCatching {
+            destroyWireguardTunnel(tunnelHandle = it).getOrThrow()
+        }
 
         // Always emit Disconnected, even if the cleanup chain failed.
         reportConnectivityStatus(
@@ -84,7 +81,7 @@ internal class StopWireguardConnectionController(
         // the result; if cleanup already failed, propagate the original cleanup failure
         // and ignore any clearCache() error (best-effort).
         val clearResult = clearCache()
-        return cleanupResult.fold(
+        return result.fold(
             onSuccess = { clearResult },
             onFailure = { Result.failure(it) }
         )

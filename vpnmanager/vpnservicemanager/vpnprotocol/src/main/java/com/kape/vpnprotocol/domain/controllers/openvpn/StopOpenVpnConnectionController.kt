@@ -52,27 +52,29 @@ internal class StopOpenVpnConnectionController(
 
     // region IStopOpenVpnConnectionController
     override suspend fun invoke(disconnectReason: DisconnectReason): Result<Unit> {
-        val result = reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Disconnecting)
+        // Best-effort cleanup. stopOpenVpnProcess() may fail when stop is invoked from
+        // the StartConnectionController failure path before the OpenVPN process was ever
+        // started. Regardless of cleanup outcome we must still report the canonical
+        // Disconnecting -> Disconnected sequence so clients always see a terminal state.
+        val cleanupResult = reportConnectivityStatus(
+            connectivityStatus = VPNManagerConnectionStatus.Disconnecting
+        )
             .mapCatching {
                 stopOpenVpnProcess().getOrThrow()
             }
-            .mapCatching {
-                reportConnectivityStatus(
-                    connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
-                ).getOrThrow()
-            }
-            .mapCatching {
-                clearCache().getOrThrow()
-            }
 
-        return result.fold(
-            onSuccess = {
-                Result.success(it)
-            },
-            onFailure = {
-                clearCache()
-                Result.failure(it)
-            }
+        // Always emit Disconnected, even if the cleanup chain failed.
+        reportConnectivityStatus(
+            connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
+        )
+
+        // Always clear cache. If cleanup succeeded, surface a clearCache() failure as
+        // the result; if cleanup already failed, propagate the original cleanup failure
+        // and ignore any clearCache() error (best-effort).
+        val clearResult = clearCache()
+        return cleanupResult.fold(
+            onSuccess = { clearResult },
+            onFailure = { Result.failure(it) }
         )
     }
     // endregion

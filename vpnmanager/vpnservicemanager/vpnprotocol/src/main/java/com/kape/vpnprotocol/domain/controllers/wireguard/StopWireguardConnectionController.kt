@@ -56,7 +56,15 @@ internal class StopWireguardConnectionController(
 
     // region IStopWireguardConnectionController
     override suspend fun invoke(disconnectReason: DisconnectReason): Result<Unit> {
-        val result = reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Disconnecting)
+        // Best-effort cleanup chain. Any step here may legitimately fail (e.g. when stop
+        // is invoked from the StartConnectionController failure path before a tunnel was
+        // ever created — there will be no byte count job and no tunnel handle to look
+        // up). We must still report the canonical Disconnecting -> Disconnected sequence
+        // regardless of cleanup outcome so clients observing
+        // handleConnectionStatusChange(...) always see a terminal state.
+        val cleanupResult = reportConnectivityStatus(
+            connectivityStatus = VPNManagerConnectionStatus.Disconnecting
+        )
             .mapCatching {
                 stopWireguardByteCountJob().getOrThrow()
             }
@@ -66,23 +74,19 @@ internal class StopWireguardConnectionController(
             .mapCatching {
                 destroyWireguardTunnel(tunnelHandle = it).getOrThrow()
             }
-            .mapCatching {
-                reportConnectivityStatus(
-                    connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
-                ).getOrThrow()
-            }
-            .mapCatching {
-                clearCache().getOrThrow()
-            }
 
-        return result.fold(
-            onSuccess = {
-                Result.success(it)
-            },
-            onFailure = {
-                clearCache()
-                Result.failure(it)
-            }
+        // Always emit Disconnected, even if the cleanup chain failed.
+        reportConnectivityStatus(
+            connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
+        )
+
+        // Always clear cache. If cleanup succeeded, surface a clearCache() failure as
+        // the result; if cleanup already failed, propagate the original cleanup failure
+        // and ignore any clearCache() error (best-effort).
+        val clearResult = clearCache()
+        return cleanupResult.fold(
+            onSuccess = { clearResult },
+            onFailure = { Result.failure(it) }
         )
     }
     // endregion

@@ -68,6 +68,11 @@ internal class StartConnectionController(
     ): Result<VPNServiceServerPeerInformation> {
         return isServiceCleared()
             .mapCatching {
+                stopConnection(DisconnectReason.CLIENT_INITIATED)
+            }.mapCatching {
+                clearCache().getOrThrow()
+            }
+            .mapCatching {
                 setProtocolConfiguration(
                     protocolConfiguration = protocolConfiguration
                 ).getOrFail {
@@ -99,7 +104,10 @@ internal class StartConnectionController(
     }
     // endregion
 
-    private suspend fun handleFailureStoppingConnection(throwable: Throwable, disconnectReason: DisconnectReason) {
+    private suspend fun handleFailureStoppingConnection(
+        throwable: Throwable,
+        disconnectReason: DisconnectReason,
+    ) {
         stopConnection(disconnectReason)
         handleFailure(throwable)
     }

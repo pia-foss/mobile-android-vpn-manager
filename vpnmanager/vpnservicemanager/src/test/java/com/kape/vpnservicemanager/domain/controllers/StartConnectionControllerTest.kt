@@ -88,7 +88,7 @@ internal class StartConnectionControllerTest {
     }
 
     @Test
-    fun `start successfully should not clear cache`() = runTest {
+    fun `start successfully clears cache exactly once for the pre-stop`() = runTest {
         // given
         val context: Context = ApplicationProvider.getApplicationContext()
         val protocolConfiguration: VPNServiceManagerConfiguration =
@@ -123,7 +123,7 @@ internal class StartConnectionControllerTest {
 
         // then
         assert(result.isSuccess)
-        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 0)
+        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 1)
     }
 
     @Test
@@ -143,6 +143,46 @@ internal class StartConnectionControllerTest {
         val getServerPeerInformationMock: IGetServerPeerInformation =
             GetServerPeerInformationMock(shouldSucceed = true)
         val stopConnectionMock: IStopConnection = StopConnectionMock(shouldSucceed = true)
+        val clearCacheMock: IClearCache = ClearCacheMock()
+        val startConnectionController: IStartConnectionController =
+            GivenController.startConnectionController(
+                context = context,
+                isServiceCleared = isServiceClearedMock,
+                setProtocolConfiguration = setProtocolConfigurationMock,
+                setServerPeerInformation = setServerPeerInformationMock,
+                startConnection = startConnectionMock,
+                startReconnectionHandler = startReconnectionHandlerMock,
+                getServerPeerInformation = getServerPeerInformationMock,
+                stopConnection = stopConnectionMock,
+                clearCache = clearCacheMock
+            )
+
+        // when
+        val result = startConnectionController(protocolConfiguration = protocolConfiguration)
+
+        // then
+        assert(result.isFailure)
+        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 0)
+        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 0)
+    }
+
+    @Test
+    fun `fail to start when there is a service present and stop fails`() = runTest {
+        // given
+        val context: Context = ApplicationProvider.getApplicationContext()
+        val protocolConfiguration: VPNServiceManagerConfiguration =
+            GivenModel.vpnServiceManagerConfiguration(context = context)
+        val isServiceClearedMock: IIsServiceCleared = IsServiceClearedMock(shouldSucceed = false)
+        val setProtocolConfigurationMock: ISetProtocolConfiguration =
+            SetProtocolConfigurationMock(shouldSucceed = true)
+        val setServerPeerInformationMock: ISetServerPeerInformation =
+            SetServerPeerInformationMock(shouldSucceed = true)
+        val startConnectionMock: IStartConnection = StartConnectionMock(shouldSucceed = true)
+        val startReconnectionHandlerMock: IStartReconnectionHandler =
+            StartReconnectionHandlerMock(shouldSucceed = true)
+        val getServerPeerInformationMock: IGetServerPeerInformation =
+            GetServerPeerInformationMock(shouldSucceed = true)
+        val stopConnectionMock: IStopConnection = StopConnectionMock(shouldSucceed = false)
         val clearCacheMock: IClearCache = ClearCacheMock()
         val startConnectionController: IStartConnectionController =
             GivenController.startConnectionController(
@@ -238,8 +278,8 @@ internal class StartConnectionControllerTest {
 
         // then
         assert(result.isFailure)
-        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 1)
-        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 0)
+        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 2)
+        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 1)
     }
 
     @Test
@@ -278,8 +318,8 @@ internal class StartConnectionControllerTest {
 
         // then
         assert(result.isFailure)
-        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 1)
-        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 1)
+        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 2)
+        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 2)
     }
 
     @Test
@@ -318,8 +358,8 @@ internal class StartConnectionControllerTest {
 
         // then
         assert(result.isFailure)
-        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 1)
-        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 1)
+        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 2)
+        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 2)
     }
 
     @Test
@@ -358,8 +398,8 @@ internal class StartConnectionControllerTest {
 
         // then
         assert(result.isFailure)
-        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 1)
-        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 1)
+        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 2)
+        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 2)
     }
 
     @Test
@@ -398,7 +438,7 @@ internal class StartConnectionControllerTest {
 
         // then
         assert(result.isFailure)
-        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 1)
-        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 1)
+        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 2)
+        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 2)
     }
 }

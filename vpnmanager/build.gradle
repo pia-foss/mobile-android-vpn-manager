@@ -8,7 +8,6 @@ android {
 
     defaultConfig {
         minSdk rootProject.minSdkVersion
-        targetSdk rootProject.targetSdkVersion
     }
 
     compileOptions {
@@ -29,8 +28,12 @@ android {
         unitTests {
             includeAndroidResources = true
         }
+        targetSdk 34
     }
     namespace 'com.kape.vpnmanager'
+    lint {
+        targetSdk 34
+    }
 }
 
 dependencies {

@@ -81,6 +81,9 @@ internal class StopWireguardConnectionController(
             },
             onFailure = {
                 clearCache()
+                reportConnectivityStatus(
+                    connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
+                )
                 Result.failure(it)
             }
         )

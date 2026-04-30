@@ -8,7 +8,6 @@ android {
 
     defaultConfig {
         minSdk rootProject.minSdkVersion
-        targetSdk rootProject.targetSdkVersion
     }
 
     compileOptions {
@@ -47,6 +46,12 @@ android {
         }
     }
     namespace 'com.kape.wireguard'
+    lint {
+        targetSdk 34
+    }
+    testOptions {
+        targetSdk 34
+    }
 }
 
 dependencies {

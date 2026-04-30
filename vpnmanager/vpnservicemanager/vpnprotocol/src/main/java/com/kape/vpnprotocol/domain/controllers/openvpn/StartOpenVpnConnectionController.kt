@@ -194,8 +194,18 @@ internal class StartOpenVpnConnectionController(
     }
     // endregion
 
+    // Note: we intentionally do NOT report VPNManagerConnectionStatus.Disconnected here.
+    // The outer StartConnectionController (in vpnservicemanager) catches this throw and
+    // calls stopConnection(...) on the failure path, which routes through
+    // Stop{Wireguard,OpenVpn}ConnectionController and emits the canonical
+    // Disconnecting -> Disconnected(disconnectReason) sequence. Emitting Disconnected
+    // here would cause a redundant Disconnected -> Disconnecting -> Disconnected flap
+    // for clients observing handleConnectionStatusChange(...).
+    // The `disconnectReason` parameter is kept on the signature so each call site still
+    // documents the failure category; it is not used now but the outer cleanup will
+    // supply its own DisconnectReason when invoking stopConnection.
+    @Suppress("UNUSED_PARAMETER")
     private suspend fun handleFailure(throwable: Throwable, disconnectReason: DisconnectReason) {
-        reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason))
         clearCache()
         throw throwable
     }

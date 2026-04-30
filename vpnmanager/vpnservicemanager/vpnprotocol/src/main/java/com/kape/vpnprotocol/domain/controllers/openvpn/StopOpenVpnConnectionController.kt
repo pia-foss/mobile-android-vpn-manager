@@ -70,6 +70,9 @@ internal class StopOpenVpnConnectionController(
                 Result.success(it)
             },
             onFailure = {
+                reportConnectivityStatus(
+                    connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
+                )
                 clearCache()
                 Result.failure(it)
             }

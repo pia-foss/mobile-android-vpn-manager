@@ -39,7 +39,7 @@ import org.robolectric.RobolectricTestRunner
 internal class StopConnectionControllerTest {
 
     @Test
-    fun `avoid clearing cache if stopping fails`() = runTest {
+    fun `clear cache even if stopping fails`() = runTest {
         // given
         val context: Context = ApplicationProvider.getApplicationContext()
         val clearCacheMock: IClearCache = ClearCacheMock()
@@ -57,7 +57,7 @@ internal class StopConnectionControllerTest {
 
         // then
         assert(result.isFailure)
-        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 0)
+        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 1)
     }
 
     @Test

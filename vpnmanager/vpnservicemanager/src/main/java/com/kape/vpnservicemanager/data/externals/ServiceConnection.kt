@@ -119,6 +119,11 @@ internal class ServiceConnection(
     override fun clearState() {
         serviceScope.coroutineContext.cancelChildren()
         cache.clearServiceBound()
-        cache.clearService()
+        // Intentionally do NOT call cache.clearService() here. On a binding timeout the
+        // service object may still be in cache and is needed so that
+        // handleFailureStoppingConnection → stopConnection → stopProtocolConnection can
+        // route through Stop{OpenVpn,Wireguard}ConnectionController and emit the canonical
+        // Disconnecting → Disconnected status sequence. clearCache() in handleFailure()
+        // will clear the service entry once that sequence has completed.
     }
 }

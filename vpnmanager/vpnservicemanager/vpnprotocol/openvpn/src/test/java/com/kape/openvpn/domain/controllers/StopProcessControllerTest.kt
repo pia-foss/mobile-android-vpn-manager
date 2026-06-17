@@ -63,7 +63,7 @@ import org.robolectric.RobolectricTestRunner
 internal class StopProcessControllerTest {
 
     @Test
-    fun `must fail if the process is stopped already`() = runBlocking {
+    fun `must succeed and clear cache if the process is already stopped`() = runBlocking {
         // given
         val context: Context = ApplicationProvider.getApplicationContext()
         val cancelHoldReleaseJobMock: ICancelHoldReleaseJob = CancelHoldReleaseJobMock(succeed = true)
@@ -83,23 +83,22 @@ internal class StopProcessControllerTest {
         val result = stopProcessController()
 
         // then
-        assert(result.isFailure)
+        assert(result.isSuccess)
     }
 
     @Test
-    fun `must fail if the socket failed to close`() = runBlocking {
+    fun `must succeed and clear cache if the socket failed to close`() = runBlocking {
         // given
-        val context: Context = ApplicationProvider.getApplicationContext()
         val cancelHoldReleaseJobMock: ICancelHoldReleaseJob = CancelHoldReleaseJobMock(succeed = true)
-        val isProcessRunningMock: IIsProcessRunning = IsProcessRunningMock(succeed = false)
+        val isProcessRunningMock: IIsProcessRunning = IsProcessRunningMock(succeed = true)
         val closeSocketMock: ICloseSocket = CloseSocketMock(succeed = false)
-        val stopProcess: IStopProcess = GivenUsecase.stopProcess(context = context)
+        val stopProcessMock: IStopProcess = StopProcessMock(succeed = true)
         val clearCache: IClearCache = ClearCacheMock(succeed = true)
         val stopProcessController: IStopProcessController = StopProcessController(
             cancelHoldReleaseJob = cancelHoldReleaseJobMock,
             isProcessRunning = isProcessRunningMock,
             closeSocket = closeSocketMock,
-            stopProcess = stopProcess,
+            stopProcess = stopProcessMock,
             clearCache = clearCache
         )
 
@@ -107,11 +106,11 @@ internal class StopProcessControllerTest {
         val result = stopProcessController()
 
         // then
-        assert(result.isFailure)
+        assert(result.isSuccess)
     }
 
     @Test
-    fun `must fail if the process failed to stop`() = runBlocking {
+    fun `must succeed and clear cache if the process failed to stop`() = runBlocking {
         // given
         val cancelHoldReleaseJobMock: ICancelHoldReleaseJob = CancelHoldReleaseJobMock(succeed = true)
         val isProcessRunningMock: IIsProcessRunning = IsProcessRunningMock(succeed = true)
@@ -130,7 +129,30 @@ internal class StopProcessControllerTest {
         val result = stopProcessController()
 
         // then
-        assert(result.isFailure)
+        assert(result.isSuccess)
+    }
+
+    @Test
+    fun `must succeed and clear cache when hold release job was not scheduled`() = runBlocking {
+        // given
+        val cancelHoldReleaseJobMock: ICancelHoldReleaseJob = CancelHoldReleaseJobMock(succeed = false)
+        val isProcessRunningMock: IIsProcessRunning = IsProcessRunningMock(succeed = true)
+        val closeSocketMock: ICloseSocket = CloseSocketMock(succeed = true)
+        val stopProcessMock: IStopProcess = StopProcessMock(succeed = true)
+        val clearCache: IClearCache = ClearCacheMock(succeed = true)
+        val stopProcessController: IStopProcessController = StopProcessController(
+            cancelHoldReleaseJob = cancelHoldReleaseJobMock,
+            isProcessRunning = isProcessRunningMock,
+            closeSocket = closeSocketMock,
+            stopProcess = stopProcessMock,
+            clearCache = clearCache
+        )
+
+        // when
+        val result = stopProcessController()
+
+        // then
+        assert(result.isSuccess)
     }
 
     @Test

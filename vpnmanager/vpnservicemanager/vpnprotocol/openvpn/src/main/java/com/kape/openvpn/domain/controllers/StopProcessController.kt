@@ -54,13 +54,33 @@ internal class StopProcessController(
 
     // region IStopProcessController
     override suspend fun invoke(): Result<Unit> {
-        // best-effort: job may not have been scheduled if the connection failed before HOLD
-        cancelHoldReleaseJob()
-        if (isProcessRunning().isSuccess) {
-            closeSocket() // best-effort: graceful shutdown attempt via SIGINT
-            stopProcess() // best-effort: forceful kill
-        }
-        return clearCache()
+        val result = isProcessRunning().fold(
+            onSuccess = {
+                cancelHoldReleaseJob()
+                    .mapCatching {
+                        closeSocket().getOrThrow()
+                    }
+                    .mapCatching {
+                        stopProcess().getOrThrow()
+                    }
+                    .mapCatching {
+                        clearCache().getOrThrow()
+                    }
+            },
+            onFailure = {
+                clearCache()
+            }
+        )
+
+        return result.fold(
+            onSuccess = {
+                Result.success(it)
+            },
+            onFailure = {
+                clearCache()
+                Result.failure(it)
+            }
+        )
     }
     // endregion
 }

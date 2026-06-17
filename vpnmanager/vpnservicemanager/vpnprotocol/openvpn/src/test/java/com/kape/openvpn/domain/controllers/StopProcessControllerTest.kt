@@ -87,7 +87,7 @@ internal class StopProcessControllerTest {
     }
 
     @Test
-    fun `must succeed and clear cache if the socket failed to close`() = runBlocking {
+    fun `must fail if the socket failed to close`() = runBlocking {
         // given
         val cancelHoldReleaseJobMock: ICancelHoldReleaseJob = CancelHoldReleaseJobMock(succeed = true)
         val isProcessRunningMock: IIsProcessRunning = IsProcessRunningMock(succeed = true)
@@ -106,11 +106,11 @@ internal class StopProcessControllerTest {
         val result = stopProcessController()
 
         // then
-        assert(result.isSuccess)
+        assert(result.isFailure)
     }
 
     @Test
-    fun `must succeed and clear cache if the process failed to stop`() = runBlocking {
+    fun `must fail if the process failed to stop`() = runBlocking {
         // given
         val cancelHoldReleaseJobMock: ICancelHoldReleaseJob = CancelHoldReleaseJobMock(succeed = true)
         val isProcessRunningMock: IIsProcessRunning = IsProcessRunningMock(succeed = true)
@@ -129,11 +129,11 @@ internal class StopProcessControllerTest {
         val result = stopProcessController()
 
         // then
-        assert(result.isSuccess)
+        assert(result.isFailure)
     }
 
     @Test
-    fun `must succeed and clear cache when hold release job was not scheduled`() = runBlocking {
+    fun `must fail if the hold release job failed to cancel`() = runBlocking {
         // given
         val cancelHoldReleaseJobMock: ICancelHoldReleaseJob = CancelHoldReleaseJobMock(succeed = false)
         val isProcessRunningMock: IIsProcessRunning = IsProcessRunningMock(succeed = true)
@@ -152,7 +152,7 @@ internal class StopProcessControllerTest {
         val result = stopProcessController()
 
         // then
-        assert(result.isSuccess)
+        assert(result.isFailure)
     }
 
     @Test

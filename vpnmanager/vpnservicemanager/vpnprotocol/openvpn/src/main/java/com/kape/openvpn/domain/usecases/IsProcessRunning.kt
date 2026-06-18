@@ -28,7 +28,7 @@ internal class IsProcessRunning(
     // region IIsProcessRunning
     override suspend fun invoke(): Result<Unit> =
         cache.getProcess().mapCatching {
-            it.isRunning()
+            it.isRunning().getOrThrow()
         }
     // endregion
 }

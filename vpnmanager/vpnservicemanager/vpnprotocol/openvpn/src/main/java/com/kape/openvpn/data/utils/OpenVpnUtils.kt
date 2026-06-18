@@ -69,10 +69,8 @@ internal fun Process.pid(): Result<Int> {
 
 internal fun Process.isRunning(): Result<Unit> {
     return this.pid().mapCatching {
-        if (File("/proc/$it").exists()) {
-            Result.success(Unit)
-        } else {
-            Result.failure(OpenVpnError(code = OpenVpnErrorCode.PROCESS_NOT_RUNNING))
+        if (!File("/proc/$it").exists()) {
+            throw OpenVpnError(code = OpenVpnErrorCode.PROCESS_NOT_RUNNING)
         }
     }
 }

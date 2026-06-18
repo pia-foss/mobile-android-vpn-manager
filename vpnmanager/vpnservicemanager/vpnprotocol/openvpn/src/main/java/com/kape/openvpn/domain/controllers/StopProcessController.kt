@@ -53,19 +53,34 @@ internal class StopProcessController(
 ) : IStopProcessController {
 
     // region IStopProcessController
-    override suspend fun invoke(): Result<Unit> =
-        cancelHoldReleaseJob()
-            .mapCatching {
-                isProcessRunning().getOrThrow()
+    override suspend fun invoke(): Result<Unit> {
+        val result = isProcessRunning().fold(
+            onSuccess = {
+                cancelHoldReleaseJob()
+                    .mapCatching {
+                        closeSocket().getOrThrow()
+                    }
+                    .mapCatching {
+                        stopProcess().getOrThrow()
+                    }
+                    .mapCatching {
+                        clearCache().getOrThrow()
+                    }
+            },
+            onFailure = {
+                clearCache()
             }
-            .mapCatching {
-                closeSocket().getOrThrow()
+        )
+
+        return result.fold(
+            onSuccess = {
+                Result.success(it)
+            },
+            onFailure = {
+                clearCache()
+                Result.failure(it)
             }
-            .mapCatching {
-                stopProcess().getOrThrow()
-            }
-            .mapCatching {
-                clearCache().getOrThrow()
-            }
+        )
+    }
     // endregion
 }

@@ -62,47 +62,67 @@ internal class StartOpenVpnOutputHandler(
 
     // region IOpenVpnProcessOutputHandler
     override fun output(line: String) {
-        Log.d(OPENVPN_TAG, line)
-        val sanitizedString = line.lowercase()
-        when {
-            sanitizedString.contains(OpenVpnProcessCommands.MANAGEMENT_OUTPUT.command) ->
-                handleOpenVpnManagementOutput(
-                    line = sanitizedString,
-                    openVpnProcessOutputHandler = this
-                )
-            sanitizedString.contains(OpenVpnProcessCommands.PASSWORD_OUTPUT.command) ->
-                handleOpenVpnPasswordOutput(
-                    line = sanitizedString,
-                    openVpnProcessEventHandler = openVpnProcessEventHandler
-                )
-            sanitizedString.contains(OpenVpnProcessCommands.NEED_OK_OUTPUT.command) ->
-                handleOpenVpnNeedOkOutput(
-                    line = sanitizedString,
-                    serverPeerInformation = serverPeerInformation,
-                    openVpnProcessEventHandler = openVpnProcessEventHandler
-                )
-            sanitizedString.contains(OpenVpnProcessCommands.PUSH_OUTPUT.command) ->
-                serverPeerInformation = handleOpenVpnPushOutput(
-                    line = sanitizedString
-                ).getOrNull()
-            sanitizedString.contains(OpenVpnProcessCommands.HOLD_OUTPUT.command) ->
-                handleOpenVpnHoldOutput(
-                    line = sanitizedString
-                )
-            sanitizedString.contains(OpenVpnProcessCommands.STATE_OUTPUT.command) ->
-                handleOpenVpnStateOutput(
-                    line = sanitizedString,
-                    openVpnProcessEventHandler = openVpnProcessEventHandler
-                )
-            sanitizedString.contains(OpenVpnProcessCommands.BYTECOUNT_OUTPUT.command) ->
-                handleOpenVpnByteCountOutput(
-                    line = sanitizedString,
-                    openVpnProcessEventHandler = openVpnProcessEventHandler
-                )
-            sanitizedString.contains(OpenVpnProcessCommands.MTU_TEST_RESULT_OUTPUT.command) ->
-                handleOpenVpnMtuTestResultOutput(
-                    line = sanitizedString
-                )
+        // The socket reads up to 2048 bytes at a time, so one read may contain multiple
+        // newline-separated management messages. Process each line individually.
+        line.split("\n").filter { it.isNotBlank() }.forEach { singleLine ->
+            Log.d(OPENVPN_TAG, singleLine)
+            val sanitizedString = singleLine.lowercase()
+            when {
+                sanitizedString.contains(OpenVpnProcessCommands.MANAGEMENT_OUTPUT.command) -> {
+                    handleOpenVpnManagementOutput(
+                        line = sanitizedString,
+                        openVpnProcessOutputHandler = this
+                    )
+                }
+
+                sanitizedString.contains(OpenVpnProcessCommands.PASSWORD_OUTPUT.command) -> {
+                    handleOpenVpnPasswordOutput(
+                        line = sanitizedString,
+                        openVpnProcessEventHandler = openVpnProcessEventHandler
+                    )
+                }
+
+                sanitizedString.contains(OpenVpnProcessCommands.NEED_OK_OUTPUT.command) -> {
+                    handleOpenVpnNeedOkOutput(
+                        line = sanitizedString,
+                        serverPeerInformation = serverPeerInformation,
+                        openVpnProcessEventHandler = openVpnProcessEventHandler
+                    )
+                }
+
+                sanitizedString.contains(OpenVpnProcessCommands.PUSH_OUTPUT.command) -> {
+                    serverPeerInformation =
+                        handleOpenVpnPushOutput(
+                            line = sanitizedString
+                        ).getOrNull()
+                }
+
+                sanitizedString.contains(OpenVpnProcessCommands.HOLD_OUTPUT.command) -> {
+                    handleOpenVpnHoldOutput(
+                        line = sanitizedString
+                    )
+                }
+
+                sanitizedString.contains(OpenVpnProcessCommands.STATE_OUTPUT.command) -> {
+                    handleOpenVpnStateOutput(
+                        line = sanitizedString,
+                        openVpnProcessEventHandler = openVpnProcessEventHandler
+                    )
+                }
+
+                sanitizedString.contains(OpenVpnProcessCommands.BYTECOUNT_OUTPUT.command) -> {
+                    handleOpenVpnByteCountOutput(
+                        line = sanitizedString,
+                        openVpnProcessEventHandler = openVpnProcessEventHandler
+                    )
+                }
+
+                sanitizedString.contains(OpenVpnProcessCommands.MTU_TEST_RESULT_OUTPUT.command) -> {
+                    handleOpenVpnMtuTestResultOutput(
+                        line = sanitizedString
+                    )
+                }
+            }
         }
     }
     // endregion

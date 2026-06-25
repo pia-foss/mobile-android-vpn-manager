@@ -2,6 +2,7 @@ package com.kape.vpnprotocol.testutils.mocks
 
 import com.kape.openvpn.data.models.OpenVpnServerPeerInformation
 import com.kape.openvpn.presenters.OpenVpnProcessEventHandler
+import com.kape.openvpn.presenters.OpenVpnState
 import com.kape.openvpn.presenters.OpenVpnUserCredentials
 import com.kape.vpnprotocol.testutils.GivenModel
 
@@ -38,11 +39,15 @@ internal class OpenVpnProcessEventHandlerMock : OpenVpnProcessEventHandler {
         return Result.success(GivenModel.openVpnUserCredentials())
     }
 
-    override fun processConnected(): Result<Unit> {
+    override fun stateUpdated(state: OpenVpnState): Result<Unit> {
         return Result.success(Unit)
     }
 
     override fun processByteCountReceived(tx: Long, rx: Long): Result<Unit> {
+        return Result.success(Unit)
+    }
+
+    override fun openVpnProcessOutputLineReceived(line: String): Result<Unit> {
         return Result.success(Unit)
     }
     // endregion

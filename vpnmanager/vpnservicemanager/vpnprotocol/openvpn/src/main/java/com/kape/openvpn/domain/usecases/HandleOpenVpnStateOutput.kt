@@ -1,6 +1,7 @@
 package com.kape.openvpn.domain.usecases
 
 import com.kape.openvpn.presenters.OpenVpnProcessEventHandler
+import com.kape.openvpn.presenters.OpenVpnState
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -22,20 +23,32 @@ import com.kape.openvpn.presenters.OpenVpnProcessEventHandler
 
 internal class HandleOpenVpnStateOutput : IHandleOpenVpnStateOutput {
 
-    private enum class OpenVpnStateLinesOfInterest(val line: String) {
-        CONNECTED("connected"),
-    }
-
     // region IHandleOpenVpnStateOutput
     override fun invoke(
         line: String,
         openVpnProcessEventHandler: OpenVpnProcessEventHandler,
     ): Result<Unit> {
         return runCatching {
-            when {
-                line.contains(OpenVpnStateLinesOfInterest.CONNECTED.line) -> {
-                    openVpnProcessEventHandler.processConnected()
-                }
+            // State lines arrive as: >state:timestamp,state_name,description,...
+            val stateName = line.substringAfter("state:").split(",").getOrNull(1)
+            val state = when (stateName) {
+                "initial" -> OpenVpnState.Initial
+                "connecting" -> OpenVpnState.Connecting
+                "assign_ip" -> OpenVpnState.AssignIp
+                "add_routes" -> OpenVpnState.AddRoutes
+                "connected" -> OpenVpnState.Connected
+                "reconnecting" -> OpenVpnState.Reconnecting
+                "exiting" -> OpenVpnState.Exiting
+                "wait" -> OpenVpnState.Wait
+                "auth_pending" -> OpenVpnState.AuthPending
+                "auth" -> OpenVpnState.Auth
+                "get_config" -> OpenVpnState.GetConfig
+                "resolve" -> OpenVpnState.Resolve
+                "tcp_connect" -> OpenVpnState.TcpConnect
+                else -> null
+            }
+            if (state != null) {
+                openVpnProcessEventHandler.stateUpdated(state)
             }
         }
     }

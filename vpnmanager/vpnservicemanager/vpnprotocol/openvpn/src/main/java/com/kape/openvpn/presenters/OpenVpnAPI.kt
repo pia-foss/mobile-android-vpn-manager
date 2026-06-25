@@ -44,6 +44,26 @@ public interface OpenVpnAPI {
 }
 
 /**
+ * Sealed class representing the possible OpenVPN connection states reported via the management
+ * interface.
+ */
+public sealed class OpenVpnState {
+    public data object Initial : OpenVpnState()
+    public data object Connecting : OpenVpnState()
+    public data object AssignIp : OpenVpnState()
+    public data object AddRoutes : OpenVpnState()
+    public data object Connected : OpenVpnState()
+    public data object Reconnecting : OpenVpnState()
+    public data object Exiting : OpenVpnState()
+    public data object Wait : OpenVpnState()
+    public data object Auth : OpenVpnState()
+    public data object GetConfig : OpenVpnState()
+    public data object Resolve : OpenVpnState()
+    public data object TcpConnect : OpenVpnState()
+    public data object AuthPending : OpenVpnState()
+}
+
+/**
  * Interface defining the handler of openvpn's process relevant events.
  */
 public interface OpenVpnProcessEventHandler {
@@ -68,9 +88,11 @@ public interface OpenVpnProcessEventHandler {
     fun getUserCredentials(): Result<OpenVpnUserCredentials>
 
     /**
+     * @param state `OpenVpnState`.
+     *
      * @return `Result<Unit>`
      */
-    fun processConnected(): Result<Unit>
+    fun stateUpdated(state: OpenVpnState): Result<Unit>
 
     /**
      * @param tx `Long`.
@@ -79,6 +101,13 @@ public interface OpenVpnProcessEventHandler {
      * @return `Result<Unit>`
      */
     fun processByteCountReceived(tx: Long, rx: Long): Result<Unit>
+
+    /**
+     * @param line `String`.
+     *
+     * @return `Result<Unit>`
+     */
+    fun openVpnProcessOutputLineReceived(line: String): Result<Unit>
 }
 
 /**

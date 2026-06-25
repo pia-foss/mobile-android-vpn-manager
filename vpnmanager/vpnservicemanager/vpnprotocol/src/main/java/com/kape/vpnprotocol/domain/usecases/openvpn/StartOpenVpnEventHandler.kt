@@ -1,5 +1,6 @@
 package com.kape.vpnprotocol.domain.usecases.openvpn
 
+import android.util.Log
 import com.kape.openvpn.data.models.OpenVpnServerPeerInformation
 import com.kape.openvpn.presenters.OpenVpnProcessEventHandler
 import com.kape.openvpn.presenters.OpenVpnState
@@ -94,5 +95,14 @@ internal class StartOpenVpnEventHandler(
 
     override fun processByteCountReceived(tx: Long, rx: Long): Result<Unit> =
         cacheProtocol.reportByteCount(tx = tx, rx = rx)
+
+    override fun openVpnProcessOutputLineReceived(line: String): Result<Unit> {
+        Log.d(OPENVPN_TAG, line)
+        return Result.success(Unit)
+    }
     // endregion
+
+    companion object {
+        private const val OPENVPN_TAG = "OpenVPN/Process"
+    }
 }

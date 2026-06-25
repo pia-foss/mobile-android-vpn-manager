@@ -1,6 +1,5 @@
 package com.kape.openvpn.domain.usecases
 
-import android.util.Log
 import com.kape.openvpn.data.externals.ICache
 import com.kape.openvpn.data.models.OpenVpnServerPeerInformation
 import com.kape.openvpn.presenters.OpenVpnProcessEventHandler
@@ -38,11 +37,9 @@ internal class StartOpenVpnOutputHandler(
     private lateinit var openVpnProcessEventHandler: OpenVpnProcessEventHandler
     private var serverPeerInformation: OpenVpnServerPeerInformation? = null
 
-    companion object {
-        private const val OPENVPN_TAG = "OpenVPN/Process"
-    }
-
-    private enum class OpenVpnProcessCommands(val command: String) {
+    private enum class OpenVpnProcessCommands(
+        val command: String,
+    ) {
         MANAGEMENT_OUTPUT("management:"),
         PASSWORD_OUTPUT("password:"),
         NEED_OK_OUTPUT("need-ok:"),
@@ -65,7 +62,7 @@ internal class StartOpenVpnOutputHandler(
         // The socket reads up to 2048 bytes at a time, so one read may contain multiple
         // newline-separated management messages. Process each line individually.
         line.split("\n").filter { it.isNotBlank() }.forEach { singleLine ->
-            Log.d(OPENVPN_TAG, singleLine)
+            openVpnProcessEventHandler.openVpnProcessOutputLineReceived(singleLine)
             val sanitizedString = singleLine.lowercase()
             when {
                 sanitizedString.contains(OpenVpnProcessCommands.MANAGEMENT_OUTPUT.command) -> {

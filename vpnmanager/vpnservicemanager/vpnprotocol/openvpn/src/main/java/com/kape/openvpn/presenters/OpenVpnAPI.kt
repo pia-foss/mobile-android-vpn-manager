@@ -101,6 +101,13 @@ public interface OpenVpnProcessEventHandler {
      * @return `Result<Unit>`
      */
     fun processByteCountReceived(tx: Long, rx: Long): Result<Unit>
+
+    /**
+     * @param line `String`.
+     *
+     * @return `Result<Unit>`
+     */
+    fun openVpnProcessOutputLineReceived(line: String): Result<Unit>
 }
 
 /**

@@ -39,4 +39,7 @@ internal class OpenVpnProcessEventHandlerMock : OpenVpnProcessEventHandler {
 
     override fun processByteCountReceived(tx: Long, rx: Long): Result<Unit> =
         Result.success(Unit)
+
+    override fun openVpnProcessOutputLineReceived(line: String): Result<Unit> =
+        Result.success(Unit)
 }

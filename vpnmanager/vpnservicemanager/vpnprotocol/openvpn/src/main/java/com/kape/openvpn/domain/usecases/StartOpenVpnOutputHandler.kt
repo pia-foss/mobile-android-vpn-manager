@@ -103,7 +103,10 @@ internal class StartOpenVpnOutputHandler(
                     )
                 }
 
-                sanitizedString.contains(OpenVpnProcessCommands.STATE_OUTPUT.command) -> {
+                // Bare state output (response to `state on all`): timestamp,STATE_NAME,...
+                // Real-time notifications always start with `>`, so digit-starting lines are also state output.
+                sanitizedString.contains(OpenVpnProcessCommands.STATE_OUTPUT.command) ||
+                    sanitizedString.first().isDigit() -> {
                     handleOpenVpnStateOutput(
                         line = sanitizedString,
                         openVpnProcessEventHandler = openVpnProcessEventHandler

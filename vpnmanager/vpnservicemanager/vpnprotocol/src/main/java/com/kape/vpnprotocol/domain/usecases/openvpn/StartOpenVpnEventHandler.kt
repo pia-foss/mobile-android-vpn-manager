@@ -2,6 +2,7 @@ package com.kape.vpnprotocol.domain.usecases.openvpn
 
 import com.kape.openvpn.data.models.OpenVpnServerPeerInformation
 import com.kape.openvpn.presenters.OpenVpnProcessEventHandler
+import com.kape.openvpn.presenters.OpenVpnState
 import com.kape.openvpn.presenters.OpenVpnUserCredentials
 import com.kape.vpnprotocol.data.externals.common.ICacheProtocol
 import com.kape.vpnprotocol.data.externals.common.ICacheService
@@ -78,7 +79,11 @@ internal class StartOpenVpnEventHandler(
         )
     }
 
-    override fun processConnected(): Result<Unit> {
+    override fun stateUpdated(state: OpenVpnState): Result<Unit> {
+        if (state != OpenVpnState.Connected) {
+            return Result.success(Unit)
+        }
+
         val deferred = cacheOpenVpn.getOpenVpnProcessConnectedDeferrable().getOrElse {
             return Result.failure(it)
         }

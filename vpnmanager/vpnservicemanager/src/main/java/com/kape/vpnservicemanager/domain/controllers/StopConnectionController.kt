@@ -51,10 +51,11 @@ internal class StopConnectionController(
 
     // region IStopConnectionController
     override suspend fun invoke(disconnectReason: DisconnectReason): Result<Unit> {
-        val result = isServicePresent()
-            .mapCatching {
-                stopConnection(disconnectReason).getOrThrow()
-            }
+        if (isServicePresent().isFailure) {
+            clearCache().getOrThrow()
+            return Result.success(Unit)
+        }
+        val result = stopConnection(disconnectReason)
             .mapCatching {
                 clearCache().getOrThrow()
             }

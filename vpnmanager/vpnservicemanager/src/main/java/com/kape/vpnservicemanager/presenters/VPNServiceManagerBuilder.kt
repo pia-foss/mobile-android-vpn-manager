@@ -2,6 +2,7 @@ package com.kape.vpnservicemanager.presenters
 
 import android.content.Context
 import com.kape.vpnmanager.api.VPNManagerConnectionStatus
+import com.kape.vpnmanager.api.data.externals.ConnectionOperationQueue
 import com.kape.vpnmanager.api.data.externals.CoroutineContext
 import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnprotocol.presenters.VPNProtocolAPI
@@ -182,12 +183,18 @@ public class VPNServiceManagerBuilder {
                 connectionEventCallback = connectionEventCallback
             )
         )
+        // Shared by the API and the service connection, so a system revocation is ordered with
+        // the client's start and stop requests.
+        val connectionOperationQueue = ConnectionOperationQueue(
+            coroutineContext = coroutineContext.getModuleCoroutineContext().getOrThrow()
+        )
         val serviceConnection: IServiceConnection = ServiceConnection(
             context = context,
             cache = cache,
             subnet = subnet,
             protocol = protocol,
-            coroutineContext = coroutineContext
+            coroutineContext = coroutineContext,
+            connectionOperationQueue = connectionOperationQueue
         )
 
         return initializeGateways(
@@ -196,7 +203,8 @@ public class VPNServiceManagerBuilder {
             protocol = protocol,
             connectivity = connectivity,
             serviceConnection = serviceConnection,
-            coroutineContext = coroutineContext
+            coroutineContext = coroutineContext,
+            connectionOperationQueue = connectionOperationQueue
         )
     }
 
@@ -207,6 +215,7 @@ public class VPNServiceManagerBuilder {
         connectivity: IConnectivity,
         serviceConnection: IServiceConnection,
         coroutineContext: ICoroutineContext,
+        connectionOperationQueue: ConnectionOperationQueue,
     ): VPNServiceManagerAPI {
         val serviceGateway = ServiceGateway(
             cache = cache,
@@ -219,7 +228,8 @@ public class VPNServiceManagerBuilder {
             protocol = protocol,
             connectivity = connectivity,
             serviceGateway = serviceGateway,
-            coroutineContext = coroutineContext
+            coroutineContext = coroutineContext,
+            connectionOperationQueue = connectionOperationQueue
         )
     }
 
@@ -229,6 +239,7 @@ public class VPNServiceManagerBuilder {
         connectivity: IConnectivity,
         serviceGateway: ServiceGateway,
         coroutineContext: ICoroutineContext,
+        connectionOperationQueue: ConnectionOperationQueue,
     ): VPNServiceManagerAPI {
         val startConnection: IStartConnection = StartConnection(
             serviceGateway = serviceGateway
@@ -280,7 +291,8 @@ public class VPNServiceManagerBuilder {
             stopConnection = stopConnection,
             getVpnProtocolLogs = getVpnProtocolLogs,
             updateServerList = updateServerList,
-            coroutineContext = coroutineContext
+            coroutineContext = coroutineContext,
+            connectionOperationQueue = connectionOperationQueue
         )
     }
 
@@ -297,6 +309,7 @@ public class VPNServiceManagerBuilder {
         updateServerList: IUpdateServerList,
         clearCache: IClearCache,
         coroutineContext: ICoroutineContext,
+        connectionOperationQueue: ConnectionOperationQueue,
     ): VPNServiceManagerAPI {
         val startConnectionController: IStartConnectionController = StartConnectionController(
             isServiceCleared = isServiceCleared,
@@ -319,7 +332,8 @@ public class VPNServiceManagerBuilder {
             stopConnectionController = stopConnectionController,
             getVpnProtocolLogsUseCase = getVpnProtocolLogs,
             updateServerListUseCase = updateServerList,
-            coroutineContext = coroutineContext
+            coroutineContext = coroutineContext,
+            connectionOperationQueue = connectionOperationQueue
         )
     }
 

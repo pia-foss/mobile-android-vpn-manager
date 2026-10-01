@@ -47,6 +47,8 @@ import com.kape.vpnprotocol.domain.usecases.openvpn.IWaitForOpenVpnProcessConnec
 import com.kape.vpnprotocol.presenters.ServiceConfigurationFileDescriptorProvider
 import com.kape.vpnprotocol.presenters.VPNProtocolService
 import com.kape.vpnprotocol.presenters.mapToApiModel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -206,6 +208,9 @@ internal class StartOpenVpnConnectionController(
     // supply its own DisconnectReason when invoking stopConnection.
     @Suppress("UNUSED_PARAMETER")
     private suspend fun handleFailure(throwable: Throwable, disconnectReason: DisconnectReason) {
+        // When a stop cancelled this attempt, leave the cached state to the stop tearing it down.
+        // Clearing it here would lose track of what still needs to be released.
+        currentCoroutineContext().ensureActive()
         clearCache()
         throw throwable
     }

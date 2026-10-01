@@ -20,6 +20,8 @@ import com.kape.vpnservicemanager.data.models.VPNServiceTransportProtocol
 import com.kape.vpnservicemanager.presenters.VPNServiceManagerAPI
 import com.kape.vpnservicemanager.presenters.VPNServiceManagerProtocolTarget
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -49,6 +51,8 @@ internal class ServiceManager(
         val configuration = cache.getState().getOrThrow().configuration
         val adaptedConfiguration = adaptConfiguration(configuration = configuration).getOrThrow()
         val deferred: CompletableDeferred<Result<ServerPeerInformation>> = CompletableDeferred()
+        // Don't hand the service layer an attempt that was already cancelled by a stop.
+        currentCoroutineContext().ensureActive()
         serviceManagerApi.startConnection(protocolConfiguration = adaptedConfiguration) { result ->
             deferred.complete(
                 result.map {

@@ -2,6 +2,7 @@ package com.kape.openvpn.presenters
 
 import com.kape.openvpn.domain.controllers.IStartProcessController
 import com.kape.openvpn.domain.controllers.IStopProcessController
+import com.kape.vpnmanager.api.data.externals.ConnectionOperationQueue
 import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -35,6 +36,12 @@ internal class OpenVpn(
         coroutineContext.getModuleCoroutineContext().getOrThrow()
     private val clientCoroutineContext: CoroutineContext =
         coroutineContext.getClientCoroutineContext().getOrThrow()
+    private val connectionOperationQueue = ConnectionOperationQueue(moduleCoroutineContext)
+
+    companion object {
+        internal const val CONNECTION_CANCELLED_MESSAGE =
+            "Connection attempt cancelled by stopConnection"
+    }
 
     // region OpenVpnAPI
     override fun start(
@@ -42,24 +49,39 @@ internal class OpenVpn(
         openVpnProcessEventHandler: OpenVpnProcessEventHandler,
         callback: OpenVpnCallback,
     ) {
-        CoroutineScope(moduleCoroutineContext).launch {
-            val result = startProcessController(
-                commandLineParams = commandLineParams,
-                openVpnProcessEventHandler = openVpnProcessEventHandler
-            )
-            launch(clientCoroutineContext) {
-                callback(result)
+        connectionOperationQueue.start(
+            operation = {
+                startProcessController(
+                    commandLineParams = commandLineParams,
+                    openVpnProcessEventHandler = openVpnProcessEventHandler
+                )
+            },
+            cancelledResult = {
+                Result.failure(
+                    OpenVpnError(
+                        code = OpenVpnErrorCode.PROCESS_COULD_NOT_START,
+                        error = Error(CONNECTION_CANCELLED_MESSAGE)
+                    )
+                )
+            },
+            onResult = { result ->
+                CoroutineScope(clientCoroutineContext).launch {
+                    callback(result)
+                }
             }
-        }
+        )
     }
 
+    // Ordered after any start still in flight, so the process it spawns is the one stopped.
     override fun stop(callback: OpenVpnCallback) {
-        CoroutineScope(moduleCoroutineContext).launch {
-            val result = stopProcessController()
-            launch(clientCoroutineContext) {
-                callback(result)
+        connectionOperationQueue.stop(
+            operation = { stopProcessController() },
+            onResult = { result ->
+                CoroutineScope(clientCoroutineContext).launch {
+                    callback(result)
+                }
             }
-        }
+        )
     }
     // endregion
 }

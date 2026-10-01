@@ -4,13 +4,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.os.IBinder
 import com.kape.vpnmanager.api.DisconnectReason
+import com.kape.vpnmanager.api.data.externals.ConnectionOperationQueue
 import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnservicemanager.data.models.VPNServiceServerPeerInformation
+import com.kape.vpnservicemanager.presenters.VPNServiceManagerError
+import com.kape.vpnservicemanager.presenters.VPNServiceManagerErrorCode
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -36,19 +37,41 @@ internal class ServiceConnection(
     private val subnet: ISubnet,
     private val protocol: IProtocol,
     private val coroutineContext: ICoroutineContext,
+    private val connectionOperationQueue: ConnectionOperationQueue,
 ) : IServiceConnection {
 
-    private var serviceConnectionDeferredTimeout: CompletableDeferred<Result<VPNServiceServerPeerInformation>>? = null
-    private val moduleCoroutineContext: CoroutineContext =
-        coroutineContext.getModuleCoroutineContext().getOrThrow()
-    private val serviceScope = CoroutineScope(moduleCoroutineContext)
+    // Written on the module coroutine context, completed from `onServiceConnected` on the main thread.
+    @Volatile
+    private var serviceBinding: CompletableDeferred<Result<Service>>? = null
 
     // region IServiceConnection
-    override suspend fun setServiceConnectionTimeout(
-        serviceConnectionDeferredTimeout: CompletableDeferred<Result<VPNServiceServerPeerInformation>>,
-    ): Result<Unit> {
-        this.serviceConnectionDeferredTimeout = serviceConnectionDeferredTimeout
-        return Result.success(Unit)
+    override fun createServiceBinding(): CompletableDeferred<Result<Service>> =
+        CompletableDeferred<Result<Service>>().also {
+            serviceBinding = it
+        }
+
+    override fun clearServiceBinding() {
+        serviceBinding = null
+    }
+
+    override suspend fun startServiceConnection(
+        service: Service,
+    ): Result<VPNServiceServerPeerInformation> {
+        // Last check before touching any state: the attempt may have been cancelled while the
+        // binding was pending.
+        currentCoroutineContext().ensureActive()
+        cache.setService(service).getOrElse {
+            return Result.failure(it)
+        }
+        service.bootstrap(
+            protocol = protocol,
+            subnet = subnet,
+            cache = cache,
+            onServiceRevoked = ::onServiceRevoked
+        ).getOrElse {
+            return Result.failure(it)
+        }
+        return service.startConnection()
     }
 
     override suspend fun startProtocolReconnection(): Result<Unit> =
@@ -61,44 +84,47 @@ internal class ServiceConnection(
             it.stopConnection(disconnectReason).getOrThrow()
         }
 
-    override fun onServiceConnected(className: ComponentName, service: IBinder) {
-        cache.setServiceBound()
-        serviceScope.launch {
-            val deferred = serviceConnectionDeferredTimeout ?: return@launch
-
-            val binder = service as Service.ServiceBinder
-            val result = cache.setService(binder.getService())
-                .mapCatching { _ ->
-                    val vpnService = cache.getService().getOrThrow()
-                    vpnService.bootstrap(
-                        protocol = protocol,
-                        subnet = subnet,
-                        cache = cache,
-                        onServiceRevoked = ::onServiceRevoked
-                    ).getOrThrow()
-                    vpnService.startConnection().getOrThrow()
-                }
-
-            deferred.complete(result)
-        }
+    // Called on the main thread. It only hands the service over: the connection is started by the
+    // coroutine waiting on the binding, so a stop cancelling that coroutine also stops the attempt.
+    override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
+        val binder = service as? Service.ServiceBinder
+        serviceBinding?.complete(
+            binder?.let {
+                Result.success(it.getService())
+            } ?: Result.failure(
+                VPNServiceManagerError(
+                    code = VPNServiceManagerErrorCode.SERVICE_NOT_READY,
+                    error = Error("Unexpected binder on service connected")
+                )
+            )
+        )
     }
 
+    // Called on the main thread. Revocation is ordered with the client's start and stop requests,
+    // and supersedes a start still in flight like a stop does.
     private fun onServiceRevoked() {
-        serviceScope.launch {
-            cache.getService()
-                .mapCatching {
-                    stopConnection(DisconnectReason.CONFIGURATION_ERROR).getOrThrow()
-                }
-                .mapCatching {
-                    cache.clear().getOrThrow()
-                }
-        }
+        connectionOperationQueue.stop(
+            operation = {
+                cache.getService()
+                    .mapCatching {
+                        stopConnection(DisconnectReason.CONFIGURATION_ERROR).getOrThrow()
+                    }
+                    .mapCatching {
+                        cache.clear().getOrThrow()
+                    }
+            },
+            onResult = { }
+        )
     }
 
     private suspend fun stopConnection(disconnectReason: DisconnectReason): Result<Unit> {
         val disconnectResult = stopProtocolConnection(disconnectReason)
         if (cache.isServiceBound()) {
-            context.unbindService(this)
+            try {
+                context.unbindService(this)
+            } catch (exception: IllegalArgumentException) {
+                // Already unbound.
+            }
             cache.clearServiceBound()
         }
         return disconnectResult
@@ -115,15 +141,4 @@ internal class ServiceConnection(
         // when the Service is next running.
     }
     // endregion
-
-    override fun clearState() {
-        serviceScope.coroutineContext.cancelChildren()
-        cache.clearServiceBound()
-        // Intentionally do NOT call cache.clearService() here. On a binding timeout the
-        // service object may still be in cache and is needed so that
-        // handleFailureStoppingConnection → stopConnection → stopProtocolConnection can
-        // route through Stop{OpenVpn,Wireguard}ConnectionController and emit the canonical
-        // Disconnecting → Disconnected status sequence. clearCache() in handleFailure()
-        // will clear the service entry once that sequence has completed.
-    }
 }

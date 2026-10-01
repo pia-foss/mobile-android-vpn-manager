@@ -52,31 +52,18 @@ internal class StopOpenVpnConnectionController(
 
     // region IStopOpenVpnConnectionController
     override suspend fun invoke(disconnectReason: DisconnectReason): Result<Unit> {
-        val result = reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Disconnecting)
-            .mapCatching {
-                stopOpenVpnProcess().getOrThrow()
-            }
-            .mapCatching {
-                reportConnectivityStatus(
-                    connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
-                ).getOrThrow()
-            }
-            .mapCatching {
-                clearCache().getOrThrow()
-            }
-
-        return result.fold(
-            onSuccess = {
-                Result.success(it)
-            },
-            onFailure = {
-                reportConnectivityStatus(
-                    connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
-                )
-                clearCache()
-                Result.failure(it)
-            }
+        // Every step runs even when an earlier one fails, and the first failure is reported.
+        // A stop can supersede a start that got partway, and must still stop the process and
+        // leave listeners with a final disconnected status.
+        val results = listOf(
+            reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Disconnecting),
+            stopOpenVpnProcess(),
+            reportConnectivityStatus(
+                connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
+            ),
+            clearCache()
         )
+        return results.firstOrNull { it.isFailure } ?: Result.success(Unit)
     }
     // endregion
 }

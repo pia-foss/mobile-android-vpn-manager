@@ -12,6 +12,8 @@ import com.kape.vpnservicemanager.data.models.VPNServiceServerPeerInformation
 import com.kape.vpnservicemanager.data.utils.parseIpWithSubnetMask
 import com.kape.vpnservicemanager.presenters.VPNServiceManagerError
 import com.kape.vpnservicemanager.presenters.VPNServiceManagerErrorCode
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -80,6 +82,9 @@ internal class Service :
             return Result.failure(it)
         }
 
+        // A stop may have cancelled this attempt since it started. Never post the foreground
+        // notification for a connection the client no longer wants.
+        currentCoroutineContext().ensureActive()
         startForeground(
             protocolConfiguration.notificationId,
             protocolConfiguration.notification
@@ -95,12 +100,15 @@ internal class Service :
         protocol.startReconnection()
 
     override suspend fun stopConnection(disconnectReason: DisconnectReason): Result<Unit> {
-        protocol.stopConnection(disconnectReason).getOrElse {
-            return Result.failure(it)
+        // Leave the foreground and stop regardless of the protocol's result. When stopping an
+        // attempt that was only partially set up the protocol may report missing state, and the
+        // service must not keep its notification because of it.
+        try {
+            return protocol.stopConnection(disconnectReason)
+        } finally {
+            stopForeground(true)
+            stopSelf()
         }
-        stopForeground(true)
-        stopSelf()
-        return Result.success(Unit)
     }
     // endregion
 

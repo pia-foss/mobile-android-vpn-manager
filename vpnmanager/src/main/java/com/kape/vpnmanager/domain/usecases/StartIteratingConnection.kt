@@ -9,6 +9,8 @@ import com.kape.vpnmanager.presenters.VPNManagerError
 import com.kape.vpnmanager.presenters.VPNManagerErrorCode
 import com.kape.vpnmanager.presenters.VPNManagerProtocolTarget
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
 /*
@@ -49,6 +51,8 @@ internal class StartIteratingConnection(
         val clientCoroutineContext = coroutineContext.getClientCoroutineContext().getOrThrow()
 
         while (mutableServerList.isNotEmpty()) {
+            // A stop cancels the attempt. Don't move on to the next server once that happened.
+            currentCoroutineContext().ensureActive()
             val updatedServerList = serverList.copy(servers = mutableServerList)
             val server = targetProvider.getOptimalServer(serverList = updatedServerList).getOrThrow()
             setServer(server = server).getOrThrow()

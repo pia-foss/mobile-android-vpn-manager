@@ -56,37 +56,21 @@ internal class StopWireguardConnectionController(
 
     // region IStopWireguardConnectionController
     override suspend fun invoke(disconnectReason: DisconnectReason): Result<Unit> {
-        val result = reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Disconnecting)
-            .mapCatching {
-                stopWireguardByteCountJob().getOrThrow()
-            }
-            .mapCatching {
-                getWireguardTunnelHandle().getOrThrow()
-            }
-            .mapCatching {
+        // Every step runs even when an earlier one fails, and the first failure is reported.
+        // A stop can supersede a start that got partway, e.g. with the tunnel created but the byte
+        // count job not started yet, and the tunnel must be destroyed regardless.
+        val results = listOf(
+            reportConnectivityStatus(connectivityStatus = VPNManagerConnectionStatus.Disconnecting),
+            stopWireguardByteCountJob(),
+            getWireguardTunnelHandle().mapCatching {
                 destroyWireguardTunnel(tunnelHandle = it).getOrThrow()
-            }
-            .mapCatching {
-                reportConnectivityStatus(
-                    connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
-                ).getOrThrow()
-            }
-            .mapCatching {
-                clearCache().getOrThrow()
-            }
-
-        return result.fold(
-            onSuccess = {
-                Result.success(it)
             },
-            onFailure = {
-                clearCache()
-                reportConnectivityStatus(
-                    connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
-                )
-                Result.failure(it)
-            }
+            reportConnectivityStatus(
+                connectivityStatus = VPNManagerConnectionStatus.Disconnected(disconnectReason)
+            ),
+            clearCache()
         )
+        return results.firstOrNull { it.isFailure } ?: Result.success(Unit)
     }
     // endregion
 }

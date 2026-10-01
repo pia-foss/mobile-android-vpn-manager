@@ -1,6 +1,7 @@
 package com.kape.vpnprotocol.presenters
 
 import com.kape.vpnmanager.api.DisconnectReason
+import com.kape.vpnmanager.api.data.externals.ConnectionOperationQueue
 import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnprotocol.data.models.VPNProtocolConfiguration
 import com.kape.vpnprotocol.data.models.VPNProtocolServer
@@ -47,6 +48,12 @@ internal class VPNProtocol(
         coroutineContext.getModuleCoroutineContext().getOrThrow()
     private val clientCoroutineContext: CoroutineContext =
         coroutineContext.getClientCoroutineContext().getOrThrow()
+    private val connectionOperationQueue = ConnectionOperationQueue(moduleCoroutineContext)
+
+    companion object {
+        internal const val CONNECTION_CANCELLED_MESSAGE =
+            "Connection attempt cancelled by stopConnection"
+    }
 
     // region VPNProtocolAPI
     override fun startConnection(
@@ -55,25 +62,35 @@ internal class VPNProtocol(
         serviceConfigurationFileDescriptorProvider: ServiceConfigurationFileDescriptorProvider,
         callback: VPNProtocolResultCallback<VPNProtocolServerPeerInformation>,
     ) {
-        CoroutineScope(moduleCoroutineContext).launch {
-            val result = startConnectionController(
-                vpnService = vpnService,
-                protocolConfiguration = protocolConfiguration,
-                serviceConfigurationFileDescriptorProvider = serviceConfigurationFileDescriptorProvider
-            )
-            launch(clientCoroutineContext) {
-                callback(result)
+        connectionOperationQueue.start(
+            operation = {
+                startConnectionController(
+                    vpnService = vpnService,
+                    protocolConfiguration = protocolConfiguration,
+                    serviceConfigurationFileDescriptorProvider = serviceConfigurationFileDescriptorProvider
+                )
+            },
+            cancelledResult = { cancelledResult() },
+            onResult = { result ->
+                CoroutineScope(clientCoroutineContext).launch {
+                    callback(result)
+                }
             }
-        }
+        )
     }
 
+    // A reconnection rebuilds the tunnel, so it is ordered with, and superseded by, a stop the
+    // same way a start is.
     override fun startReconnection(callback: VPNProtocolCallback) {
-        CoroutineScope(moduleCoroutineContext).launch {
-            val result = startReconnectionController()
-            launch(clientCoroutineContext) {
-                callback(result)
+        connectionOperationQueue.start(
+            operation = { startReconnectionController() },
+            cancelledResult = { cancelledResult() },
+            onResult = { result ->
+                CoroutineScope(clientCoroutineContext).launch {
+                    callback(result)
+                }
             }
-        }
+        )
     }
 
     override fun stopConnection(
@@ -81,15 +98,22 @@ internal class VPNProtocol(
         disconnectReason: DisconnectReason,
         callback: VPNProtocolCallback,
     ) {
-        CoroutineScope(moduleCoroutineContext).launch {
-            val result = stopConnectionController(
-                protocolTarget = protocolTarget,
-                disconnectReason = disconnectReason
-            )
-            launch(clientCoroutineContext) {
-                callback(result)
+        connectionOperationQueue.stop(
+            operation = {
+                stopConnectionController(
+                    protocolTarget = protocolTarget,
+                    disconnectReason = disconnectReason
+                )
+            },
+            // Nothing to tear down when no connection was started since the last stop. This is
+            // the case when the service layer is stopped before it got to start the protocol.
+            skipWhenIdle = true,
+            onResult = { result ->
+                CoroutineScope(clientCoroutineContext).launch {
+                    callback(result)
+                }
             }
-        }
+        )
     }
 
     override fun getVpnProtocolLogs(
@@ -121,5 +145,15 @@ internal class VPNProtocol(
             }
         }
     }
+    // endregion
+
+    // region private
+    private fun <T> cancelledResult(): Result<T> =
+        Result.failure(
+            VPNProtocolError(
+                code = VPNProtocolErrorCode.CONNECTION_FAILURE,
+                error = Error(CONNECTION_CANCELLED_MESSAGE)
+            )
+        )
     // endregion
 }

@@ -10,7 +10,7 @@ import com.kape.vpnservicemanager.data.externals.Service
 import com.kape.vpnservicemanager.data.models.VPNServiceServerPeerInformation
 import com.kape.vpnservicemanager.presenters.VPNServiceManagerError
 import com.kape.vpnservicemanager.presenters.VPNServiceManagerErrorCode
-import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withTimeoutOrNull
 import java.lang.Error
 
@@ -46,31 +46,34 @@ internal class ServiceGateway(
 
     // region IServiceGateway
     override suspend fun startService(): Result<VPNServiceServerPeerInformation> {
-        val deferred: CompletableDeferred<Result<VPNServiceServerPeerInformation>> = CompletableDeferred()
-        serviceConnection.setServiceConnectionTimeout(serviceConnectionDeferredTimeout = deferred)
+        val serviceBinding = serviceConnection.createServiceBinding()
         context.bindService(intent, serviceConnection, BIND_AUTO_CREATE)
-        try {
-            return withTimeoutOrNull(timeMillis = START_SERVICE_TIMEOUT_MS) {
-                deferred.await()
-            } ?: Result.failure(
+        // The connection is registered from here on, whether or not `onServiceConnected` is ever
+        // called, and must be unbound to release it.
+        cache.setServiceBound()
+
+        val result = try {
+            // Bootstrapping and starting the connection happen in this coroutine, so they are
+            // covered by the timeout and stop when a stop cancels the attempt.
+            withTimeoutOrNull(timeMillis = START_SERVICE_TIMEOUT_MS) {
+                val service = serviceBinding.await().getOrElse {
+                    return@withTimeoutOrNull Result.failure(it)
+                }
+                serviceConnection.startServiceConnection(service = service)
+            }
+        } catch (exception: CancellationException) {
+            releasePendingBinding()
+            throw exception
+        }
+
+        return result ?: run {
+            releasePendingBinding()
+            Result.failure(
                 VPNServiceManagerError(
                     code = VPNServiceManagerErrorCode.SERVICE_CONNECTION_TIMED_OUT,
                     error = Error("Service binding timed out")
                 )
             )
-        } finally {
-            if (!deferred.isCompleted) {
-                deferred.complete(
-                    Result.failure(
-                        VPNServiceManagerError(
-                            code = VPNServiceManagerErrorCode.SERVICE_CONNECTION_TIMED_OUT,
-                            error = Error("Service connection was cancelled")
-                        )
-                    )
-                )
-                context.unbindService(serviceConnection)
-                serviceConnection.clearState()
-            }
         }
     }
 
@@ -78,15 +81,39 @@ internal class ServiceGateway(
         // Unbind or stop will not trigger any indication to android.content.ServiceConnection.
         // Let's explicitly indicate the disconnection from it.
         val disconnectResult = serviceConnection.stopProtocolConnection(disconnectReason)
-        if (cache.isServiceBound()) {
-            context.unbindService(serviceConnection)
-            // As per the comment above. `unbindService` or `stopService` will not trigger any
-            // indication to android.content.ServiceConnection. Which means we have to be
-            // explicit about it being cleared after unbinding here.
-            cache.clearServiceBound()
-        }
+        unbindService()
         context.stopService(intent)
         return disconnectResult
+    }
+    // endregion
+
+    // region private
+    // Undoes a `bindService` whose service never made it into the cache, so the binding can't
+    // deliver it later. Once the service is cached, the stop path owns tearing it down: it
+    // routes through the protocol's stop controller for the Disconnecting -> Disconnected
+    // sequence, then unbinds.
+    private fun releasePendingBinding() {
+        serviceConnection.clearServiceBinding()
+        if (cache.getService().isSuccess) {
+            return
+        }
+        unbindService()
+        context.stopService(intent)
+    }
+
+    private fun unbindService() {
+        if (!cache.isServiceBound()) {
+            return
+        }
+        try {
+            context.unbindService(serviceConnection)
+        } catch (exception: IllegalArgumentException) {
+            // Already unbound.
+        }
+        // As per the comment above. `unbindService` or `stopService` will not trigger any
+        // indication to android.content.ServiceConnection. Which means we have to be
+        // explicit about it being cleared after unbinding here.
+        cache.clearServiceBound()
     }
     // endregion
 

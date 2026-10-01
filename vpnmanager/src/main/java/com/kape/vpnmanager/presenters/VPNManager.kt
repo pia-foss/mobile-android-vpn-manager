@@ -1,6 +1,7 @@
 package com.kape.vpnmanager.presenters
 
 import com.kape.vpnmanager.api.DisconnectReason
+import com.kape.vpnmanager.api.data.externals.ConnectionOperationQueue
 import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnmanager.data.models.ClientConfiguration
 import com.kape.vpnmanager.data.models.ServerList
@@ -47,27 +48,45 @@ internal class VPNManager(
         coroutineContext.getModuleCoroutineContext().getOrThrow()
     private val clientCoroutineContext: CoroutineContext =
         coroutineContext.getClientCoroutineContext().getOrThrow()
+    private val connectionOperationQueue = ConnectionOperationQueue(moduleCoroutineContext)
+
+    companion object {
+        internal const val CONNECTION_CANCELLED_MESSAGE =
+            "Connection attempt cancelled by stopConnection"
+    }
 
     // region VPNManagerAPI
     override fun startConnection(
         clientConfiguration: ClientConfiguration,
         callback: VPNManagerResultCallback<ServerPeerInformation>,
     ) {
-        CoroutineScope(moduleCoroutineContext).launch {
-            val result = startConnectionController(clientConfiguration)
-            launch(clientCoroutineContext) {
-                callback(result)
+        connectionOperationQueue.start(
+            operation = { startConnectionController(clientConfiguration) },
+            cancelledResult = {
+                Result.failure(
+                    VPNManagerError(
+                        code = VPNManagerErrorCode.FAILED,
+                        error = Error(CONNECTION_CANCELLED_MESSAGE)
+                    )
+                )
+            },
+            onResult = { result ->
+                CoroutineScope(clientCoroutineContext).launch {
+                    callback(result)
+                }
             }
-        }
+        )
     }
 
     override fun stopConnection(callback: VPNManagerCallback) {
-        CoroutineScope(moduleCoroutineContext).launch {
-            val result = stopConnectionUseCase(DisconnectReason.CLIENT_INITIATED)
-            launch(clientCoroutineContext) {
-                callback(result)
+        connectionOperationQueue.stop(
+            operation = { stopConnectionUseCase(DisconnectReason.CLIENT_INITIATED) },
+            onResult = { result ->
+                CoroutineScope(clientCoroutineContext).launch {
+                    callback(result)
+                }
             }
-        }
+        )
     }
 
     override fun addConnectionListener(

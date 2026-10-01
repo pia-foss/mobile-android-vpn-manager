@@ -25,13 +25,28 @@ import kotlinx.coroutines.CompletableDeferred
 internal interface IServiceConnection : android.content.ServiceConnection {
 
     /**
-     * @param serviceConnectionDeferredTimeout `CompletableDeferred<Result<VPNServiceServerPeerInformation>>`.
+     * Prepares for a `bindService` call. The returned deferred completes with the bound service
+     * once `onServiceConnected` is called.
      *
-     * @return `Result<Unit>`.
+     * @return `CompletableDeferred<Result<Service>>`.
      */
-    suspend fun setServiceConnectionTimeout(
-        serviceConnectionDeferredTimeout: CompletableDeferred<Result<VPNServiceServerPeerInformation>>,
-    ): Result<Unit>
+    fun createServiceBinding(): CompletableDeferred<Result<Service>>
+
+    /**
+     * Drops the binding created by `createServiceBinding`, so a late `onServiceConnected` for it
+     * is ignored.
+     */
+    fun clearServiceBinding()
+
+    /**
+     * Bootstraps the bound service and starts its connection, within the caller's coroutine so
+     * the caller cancelling it stops the attempt.
+     *
+     * @param service `Service`.
+     *
+     * @return `Result<VPNServiceServerPeerInformation>`.
+     */
+    suspend fun startServiceConnection(service: Service): Result<VPNServiceServerPeerInformation>
 
     /**
      * @return `Result<Unit>`.
@@ -42,6 +57,4 @@ internal interface IServiceConnection : android.content.ServiceConnection {
      * @return `Result<Unit>`.
      */
     suspend fun stopProtocolConnection(disconnectReason: DisconnectReason): Result<Unit>
-
-    fun clearState()
 }

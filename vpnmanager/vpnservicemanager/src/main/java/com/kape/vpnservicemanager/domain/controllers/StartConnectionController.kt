@@ -32,6 +32,8 @@ import com.kape.vpnservicemanager.domain.usecases.ISetServerPeerInformation
 import com.kape.vpnservicemanager.domain.usecases.IStartConnection
 import com.kape.vpnservicemanager.domain.usecases.IStartReconnectionHandler
 import com.kape.vpnservicemanager.domain.usecases.IStopConnection
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -104,16 +106,22 @@ internal class StartConnectionController(
     }
     // endregion
 
+    // The rollback runs to completion even if a stop cancels this attempt meanwhile. Otherwise it
+    // would stop halfway, leaving the service bound and its state cached.
     private suspend fun handleFailureStoppingConnection(
         throwable: Throwable,
         disconnectReason: DisconnectReason,
     ) {
-        stopConnection(disconnectReason)
+        withContext(NonCancellable) {
+            stopConnection(disconnectReason)
+        }
         handleFailure(throwable)
     }
 
     private suspend fun handleFailure(throwable: Throwable) {
-        clearCache()
+        withContext(NonCancellable) {
+            clearCache()
+        }
         throw throwable
     }
 }

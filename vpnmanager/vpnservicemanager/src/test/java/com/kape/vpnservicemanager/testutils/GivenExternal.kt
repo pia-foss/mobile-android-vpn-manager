@@ -1,6 +1,7 @@
 package com.kape.vpnservicemanager.testutils
 
 import android.content.Context
+import com.kape.vpnmanager.api.data.externals.ConnectionOperationQueue
 import com.kape.vpnmanager.api.data.externals.CoroutineContext
 import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnprotocol.presenters.VPNProtocolBuilder
@@ -57,13 +58,17 @@ internal object GivenExternal {
         protocol: IProtocol = protocol(context = context),
         subnet: ISubnet = subnet(),
         cache: ICache = cache(),
+        connectionOperationQueue: ConnectionOperationQueue = ConnectionOperationQueue(
+            coroutineContext = coroutineContext.getModuleCoroutineContext().getOrThrow()
+        ),
     ): IServiceConnection =
         ServiceConnection(
             context = context,
             cache = cache,
             subnet = subnet,
             protocol = protocol,
-            coroutineContext = coroutineContext
+            coroutineContext = coroutineContext,
+            connectionOperationQueue = connectionOperationQueue
         )
 
     fun protocol(

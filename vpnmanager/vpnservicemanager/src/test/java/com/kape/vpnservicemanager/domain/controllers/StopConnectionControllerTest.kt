@@ -81,4 +81,27 @@ internal class StopConnectionControllerTest {
         assert(result.isSuccess)
         assert((clearCacheMock as ClearCacheMock).invocationsCounter == 1)
     }
+
+    @Test
+    fun `succeed without stopping when no service is present`() = runTest {
+        // given
+        val context: Context = ApplicationProvider.getApplicationContext()
+        val clearCacheMock: IClearCache = ClearCacheMock()
+        val isServicePresentMock: IIsServicePresent = IsServicePresentMock(shouldSucceed = false)
+        val stopConnectionMock: IStopConnection = StopConnectionMock(shouldSucceed = true)
+        val stopConnectionController: com.kape.vpnservicemanager.domain.controllers.IStopConnectionController = GivenController.stopConnectionController(
+            context = context,
+            isServicePresent = isServicePresentMock,
+            stopConnection = stopConnectionMock,
+            clearCache = clearCacheMock
+        )
+
+        // when
+        val result = stopConnectionController(DisconnectReason.CLIENT_INITIATED)
+
+        // then
+        assert(result.isSuccess)
+        assert((stopConnectionMock as StopConnectionMock).invocationsCounter == 0)
+        assert((clearCacheMock as ClearCacheMock).invocationsCounter == 1)
+    }
 }

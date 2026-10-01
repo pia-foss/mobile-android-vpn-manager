@@ -1,6 +1,7 @@
 package com.kape.vpnservicemanager.presenters
 
 import com.kape.vpnmanager.api.DisconnectReason
+import com.kape.vpnmanager.api.data.externals.ConnectionOperationQueue
 import com.kape.vpnmanager.api.data.externals.ICoroutineContext
 import com.kape.vpnservicemanager.data.models.VPNServiceManagerConfiguration
 import com.kape.vpnservicemanager.data.models.VPNServiceServer
@@ -37,7 +38,13 @@ internal class VPNServiceManager(
     private val getVpnProtocolLogsUseCase: IGetVpnProtocolLogs,
     private val updateServerListUseCase: IUpdateServerList,
     private val coroutineContext: ICoroutineContext,
+    private val connectionOperationQueue: ConnectionOperationQueue,
 ) : VPNServiceManagerAPI {
+
+    companion object {
+        internal const val CONNECTION_CANCELLED_MESSAGE =
+            "Connection attempt cancelled by stopConnection"
+    }
 
     private val moduleCoroutineContext: CoroutineContext =
         coroutineContext.getModuleCoroutineContext().getOrThrow()
@@ -49,21 +56,33 @@ internal class VPNServiceManager(
         protocolConfiguration: VPNServiceManagerConfiguration,
         callback: VPNServiceManagerResultCallback<VPNServiceServerPeerInformation>,
     ) {
-        CoroutineScope(moduleCoroutineContext).launch {
-            val result = startConnectionController(protocolConfiguration = protocolConfiguration)
-            launch(clientCoroutineContext) {
-                callback(result)
+        connectionOperationQueue.start(
+            operation = { startConnectionController(protocolConfiguration = protocolConfiguration) },
+            cancelledResult = {
+                Result.failure(
+                    VPNServiceManagerError(
+                        code = VPNServiceManagerErrorCode.SERVICE_NOT_READY,
+                        error = Error(CONNECTION_CANCELLED_MESSAGE)
+                    )
+                )
+            },
+            onResult = { result ->
+                CoroutineScope(clientCoroutineContext).launch {
+                    callback(result)
+                }
             }
-        }
+        )
     }
 
     override fun stopConnection(disconnectReason: DisconnectReason, callback: VPNServiceManagerCallback) {
-        CoroutineScope(moduleCoroutineContext).launch {
-            val result = stopConnectionController(disconnectReason)
-            launch(clientCoroutineContext) {
-                callback(result)
+        connectionOperationQueue.stop(
+            operation = { stopConnectionController(disconnectReason) },
+            onResult = { result ->
+                CoroutineScope(clientCoroutineContext).launch {
+                    callback(result)
+                }
             }
-        }
+        )
     }
 
     override fun getVpnProtocolLogs(

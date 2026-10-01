@@ -45,7 +45,12 @@ import com.kape.vpnservicemanager.presenters.VPNServiceManagerErrorCode
 
 internal class Cache : ICache {
 
+    // Read by the reconnection handler and the stop path, which may run on different threads of
+    // the module dispatcher.
+    @Volatile
     private var service: Service? = null
+
+    @Volatile
     private var serviceBound = false
     private var protocolConfiguration: VPNServiceManagerConfiguration? = null
     private var serverPeerInformation: VPNServiceServerPeerInformation? = null

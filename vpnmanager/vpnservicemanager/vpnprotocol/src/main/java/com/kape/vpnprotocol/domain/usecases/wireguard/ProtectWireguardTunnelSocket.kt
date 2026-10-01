@@ -3,6 +3,9 @@ package com.kape.vpnprotocol.domain.usecases.wireguard
 import com.kape.vpnprotocol.data.externals.common.ICacheService
 import com.kape.vpnprotocol.data.externals.wireguard.ICacheWireguard
 import com.kape.vpnprotocol.data.externals.wireguard.IWireguard
+import com.kape.vpnprotocol.presenters.VPNProtocolError
+import com.kape.vpnprotocol.presenters.VPNProtocolErrorCode
+import com.kape.vpnprotocol.presenters.VPNProtocolService
 
 /*
  *  Copyright (c) 2022 Private Internet Access, Inc.
@@ -42,8 +45,24 @@ internal class ProtectWireguardTunnelSocket(
         val socketV6 = wireguard.socketV6(tunnelHandle = tunnelHandle).getOrElse {
             return Result.failure(it)
         }
-        vpnService.serviceProtect(socketV4)
-        vpnService.serviceProtect(socketV6)
+        protect(vpnService, socketV4).getOrElse {
+            return Result.failure(it)
+        }
+        protect(vpnService, socketV6).getOrElse {
+            return Result.failure(it)
+        }
+        return Result.success(Unit)
+    }
+    // endregion
+
+    // region private
+    private fun protect(vpnService: VPNProtocolService, socket: Int): Result<Unit> {
+        val isProtected = vpnService.serviceProtect(socket).getOrElse {
+            return Result.failure(it)
+        }
+        if (!isProtected) {
+            return Result.failure(VPNProtocolError(code = VPNProtocolErrorCode.PROTOCOL_SERVICE_ERROR))
+        }
         return Result.success(Unit)
     }
     // endregion

@@ -1,0 +1,55 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kape <noreply@kape.com>
+Date: Tue, 20 Oct 2026 16:23:45 +0800
+Subject: [PATCH 2/2] Build libopenvpn.so and libovpnexec.so on Android
+
+Android only installs and lets an app execute lib*.so files from its native
+library directory. Build OpenVPN as a shared library defining main() plus an
+empty launcher executable linked against it, the layout the Kape VPN manager
+starts with LD_LIBRARY_PATH set to that directory.
+---
+ CMakeLists.txt             | 15 ++++++++++++++-
+ contrib/android/ovpnexec.c |  8 ++++++++
+ 2 files changed, 22 insertions(+), 1 deletion(-)
+ create mode 100644 contrib/android/ovpnexec.c
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c92d9ea..3214fd1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -621,7 +621,20 @@ set(SOURCE_FILES
+     src/openvpn/xkey_provider.c
+     )
+ 
+-add_executable(openvpn ${SOURCE_FILES})
++if (ANDROID)
++    # Android packaging: libopenvpn.so carries OpenVPN (main() included) and
++    # libovpnexec.so is the executable the app starts. See contrib/android/ovpnexec.c.
++    add_library(openvpn SHARED ${SOURCE_FILES})
++    target_link_libraries(openvpn PUBLIC -ldl -lm)
++    # OpenSSL, LZO and LZ4 are linked statically; keep their symbols private.
++    target_link_options(openvpn PRIVATE -Wl,--exclude-libs,ALL)
++
++    add_executable(ovpnexec contrib/android/ovpnexec.c)
++    set_target_properties(ovpnexec PROPERTIES OUTPUT_NAME libovpnexec.so)
++    target_link_libraries(ovpnexec PRIVATE openvpn)
++else ()
++    add_executable(openvpn ${SOURCE_FILES})
++endif ()
+ 
+ add_library_deps(openvpn)
+ 
+diff --git a/contrib/android/ovpnexec.c b/contrib/android/ovpnexec.c
+new file mode 100644
+index 0000000..5a6b520
+--- /dev/null
++++ b/contrib/android/ovpnexec.c
+@@ -0,0 +1,8 @@
++/*
++ * Launcher for the Android build. Android only lets an app execute files from
++ * its native library directory, and only installs files named lib*.so there,
++ * so OpenVPN is built as libopenvpn.so (which defines main()) and this empty
++ * executable links against it. Run it with LD_LIBRARY_PATH pointing at the
++ * native library directory.
++ */
++extern int main(int argc, char *argv[]);

@@ -69,6 +69,8 @@ Android VPN Manager is a modular Android SDK/library (AAR) that provides VPN cap
 
 **Protocol selection:** The `vpnprotocol` layer is protocol-agnostic; the concrete OpenVPN/WireGuard implementations are injected. WireGuard uses a native Go library built via CMake.
 
+**OpenVPN binaries:** `libopenvpn.so` / `libovpnexec.so` in `vpnprotocol/openvpn/src/main/jniLibs/<abi>/` are prebuilt and committed. Never edit or replace them by hand: rebuild with `openvpn/build-openvpn-android.sh`, which patches upstream OpenVPN (`openvpn/patches/`), installs into `jniLibs` and rewrites `openvpn/BUILD_INFO.txt`. Commit the binaries and `BUILD_INFO.txt` together. Patch 0001 raises the password and management-line limits so a JWT auth-token fits as the password. Don't drop it when rebasing onto a newer OpenVPN. See `openvpn/README.md`.
+
 ## Important Models
 
 | File | Purpose |

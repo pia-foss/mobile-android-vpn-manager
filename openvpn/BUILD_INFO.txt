@@ -1,0 +1,18 @@
+OpenVPN      2.7.8
+  + patch    0001-increase-credential-and-management-limits.patch
+  + patch    0002-android-shared-library-and-launcher.patch
+OpenSSL      3.5.9
+LZO          2.10
+LZ4          1.10.0
+NDK          28.2.13676358
+Android API  21
+ABIs built   armeabi-v7a arm64-v8a x86 x86_64
+
+4666dc410f95ed0e43584f041e67fd81c98896cf719738b3a3dd9f49b1838229  arm64-v8a/libopenvpn.so
+57b16cd0d5ead11eb7db21fcc6db95439bdfb112134e8e1c3b04f06e3211333b  arm64-v8a/libovpnexec.so
+2edc12a63475496878aa9579994bc958da951b8661110af7cd4af7d1fff5f3bc  armeabi-v7a/libopenvpn.so
+b578f42eae981a92a4812a9d30fdac28c2e8d81c9621250f5e109c112efcdbd6  armeabi-v7a/libovpnexec.so
+33a53e5a9893da786d227bacb065c06e62edaf848e6c2700c4e14c46ab9afecb  x86_64/libopenvpn.so
+93e2aeb7d1a84b59d9af01df3412e05c679d69b480011b811c5827258b423175  x86_64/libovpnexec.so
+df78a0d883d362b1e118b0c7e5bbb2bbbb6f83a6122073c5e24ed23b82b494d3  x86/libopenvpn.so
+88f214c8cd01afa9aa70cbf40caee2b0e9810b778ab973c54d04eb3fd335b2ad  x86/libovpnexec.so

@@ -49,6 +49,10 @@ implementation("com.kape.android:vpnmanager:0.1.1")
 
 NOTE: For active development using a external application, we can deploy locally the changes via `./gradlew publishMavenPublicationToMavenLocal` which would put the publication in maven's local cache using the specified version.
 
+#### OpenVPN binaries
+
+The OpenVPN binaries in `vpnmanager/vpnservicemanager/vpnprotocol/openvpn/src/main/jniLibs/` are built from upstream OpenVPN by `openvpn/build-openvpn-android.sh`. That script also installs them. See [openvpn/README.md](/openvpn/README.md) for what is built, the patches applied, and how to rebuild.
+
 ## Usage
 As a client of the package, our main points of interest are:
 

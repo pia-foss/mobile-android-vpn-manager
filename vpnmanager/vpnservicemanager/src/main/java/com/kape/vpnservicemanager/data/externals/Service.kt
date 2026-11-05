@@ -42,6 +42,7 @@ internal class Service :
     private lateinit var subnet: ISubnet
     private lateinit var cache: ICache
     private lateinit var onServiceRevoked: () -> Unit
+    private val underlyingNetworkTracker by lazy { UnderlyingNetworkTracker(this) }
 
     // region VpnService
     override fun onBind(intent: Intent?): IBinder? {
@@ -54,7 +55,13 @@ internal class Service :
     }
 
     override fun onRevoke() {
+        underlyingNetworkTracker.stop()
         onServiceRevoked()
+    }
+
+    override fun onDestroy() {
+        underlyingNetworkTracker.stop()
+        super.onDestroy()
     }
     // endregion
 
@@ -84,6 +91,8 @@ internal class Service :
             protocolConfiguration.notificationId,
             protocolConfiguration.notification
         )
+        // Start before the tunnel is established, so the default network is known by then.
+        underlyingNetworkTracker.start()
         return protocol.startConnection(
             vpnService = this,
             allowedIps = allowedIps,
@@ -91,13 +100,16 @@ internal class Service :
         )
     }
 
-    override suspend fun startReconnection(): Result<Unit> =
-        protocol.startReconnection()
+    override suspend fun startReconnection(): Result<Unit> {
+        underlyingNetworkTracker.start()
+        return protocol.startReconnection()
+    }
 
     override suspend fun stopConnection(disconnectReason: DisconnectReason): Result<Unit> {
         protocol.stopConnection(disconnectReason).getOrElse {
             return Result.failure(it)
         }
+        underlyingNetworkTracker.stop()
         stopForeground(true)
         stopSelf()
         return Result.success(Unit)
@@ -173,6 +185,8 @@ internal class Service :
 
         return try {
             builder.establish()?.let {
+                // Android 9 ignores the builder's underlying networks, declare them again.
+                underlyingNetworkTracker.onEstablished()
                 Result.success(it.detachFd())
             } ?: Result.failure(
                 VPNServiceManagerError(
